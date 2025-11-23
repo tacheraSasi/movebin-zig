@@ -11,16 +11,15 @@ pub fn fileExists(path: []const u8) !bool {
 }
 
 pub fn askYesNo(prompt: []const u8, default_yes: bool) !bool {
-    const stdout = std.io.getStdOut().writer();
-    var stdin = std.io.getStdIn().reader();
+    var stdin = std.Io.getStdIn().reader();
 
     var buf: [16]u8 = undefined;
 
     while (true) {
         if (default_yes) {
-            try stdout.print("{s} [Y/n]: ", .{prompt});
+            try std.debug.print("{s} [Y/n]: ", .{prompt});
         } else {
-            try stdout.print("{s} [y/N]: ", .{prompt});
+            try std.debug.print("{s} [y/N]: ", .{prompt});
         }
 
         const line = try stdin.readUntilDelimiterOrEof(&buf, '\n');
@@ -34,6 +33,6 @@ pub fn askYesNo(prompt: []const u8, default_yes: bool) !bool {
         if (c == 'y') return true;
         if (c == 'n') return false;
 
-        try stdout.print("Invalid input. Please type y or n.\n", .{});
+        try std.debug.print("Invalid input. Please type y or n.\n", .{});
     }
 }
