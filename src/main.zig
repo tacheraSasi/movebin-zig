@@ -15,10 +15,10 @@ pub fn main() !void {
         return;
     }
 
-    const bin_path = args[1];// ignoring the first arg which is the program name
+    const bin_path = args[1]; // ignoring the first arg which is the program name
     std.debug.print("Binary Path: {s}\n", .{bin_path});
 
-    const exists = try utils.FileExists(allocator, bin_path);
+    const exists = try utils.FileExists(bin_path);
 
     if (!exists) {
         std.debug.print("File does not exist: {s}\n", .{bin_path});

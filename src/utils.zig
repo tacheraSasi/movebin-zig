@@ -1,13 +1,10 @@
-const std = @import("std");
+const fs = @import("std").fs;
 
-pub fn FileExists(allocator: std.mem.Allocator, path: []const u8) !bool {
-    allocator; // suppress unused variable warning
-    const file = try std.fs.cwd().openFile(path, .{ .read = true }) catch |err| {
-        if (err == std.fs.FileError.FileNotFound) {
-            return false;
-        }
-        return err;
+pub fn FileExists(path: []const u8) !bool {
+    var found = true;
+    fs.cwd().access(path, .{}) catch |err| switch (err) {
+        error.FileNotFound => found = false,
+        else => return err,
     };
-    defer file.close();
-    return true;
+    return found;
 }
