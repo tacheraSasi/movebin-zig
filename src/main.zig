@@ -29,8 +29,10 @@ pub fn main() !void {
 
     const does_dest_exist = try utils.FileExists(dest_path);
     if (does_dest_exist) {
-        std.debug.print("Destination file already exists: {s}\n Do you want to overwrite it? (y/n): ", .{dest_path});
-        return;
+        const overwrite = try utils.askYesNo("Destination file already exists. Do you want to overwrite it?", false);
+        if (!overwrite) {
+            return;
+        }
     }
 
     std.debug.print("Destination Path: {s}\n", .{dest_path});
