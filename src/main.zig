@@ -1,6 +1,13 @@
 const std = @import("std");
 
 pub fn main() !void {
-    // Prints to stderr, ignoring potential errors.
-    std.debug.print("All your {s} are belong to us.\n", .{"codebase"});
+    // var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    // defer _ = gpa.deinit();
+
+    var args = std.process.args();
+    defer args.deinit();
+
+    while (args.next()) |arg| {
+        std.debug.print("Arg: {s}\n", .{arg});
+    }
 }
