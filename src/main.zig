@@ -17,7 +17,7 @@ pub fn main() !void {
 
     const bin_path = args[1]; // ignoring the first arg which is the program name
 
-    const exists = try utils.FileExists(bin_path);
+    const exists = try utils.fileExists(bin_path);
 
     if (!exists) {
         std.debug.print("File does not exist: {s}\n", .{bin_path});
@@ -27,7 +27,7 @@ pub fn main() !void {
     const dest_path = try std.fs.path.join(allocator, &.{ "/usr/local/bin", std.fs.path.basename(bin_path) });
     defer allocator.free(dest_path);
 
-    const does_dest_exist = try utils.FileExists(dest_path);
+    const does_dest_exist = try utils.fileExists(dest_path);
     if (does_dest_exist) {
         const overwrite = try utils.askYesNo("Destination file already exists. Do you want to overwrite it?", false);
         if (!overwrite) {

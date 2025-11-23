@@ -1,7 +1,7 @@
 const std = @import("std");
 const fs = std.fs;
 
-pub fn FileExists(path: []const u8) !bool {
+pub fn fileExists(path: []const u8) !bool {
     var found = true;
     fs.cwd().access(path, .{}) catch |err| switch (err) {
         error.FileNotFound => found = false,
