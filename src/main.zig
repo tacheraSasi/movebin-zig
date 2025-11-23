@@ -6,8 +6,8 @@ pub fn main() !void {
     const allocator = gpa.allocator();
     defer _ = gpa.deinit();
 
-    var args = std.process.argsAlloc(allocator);
-    defer args.deinit();
+    var args = try std.process.argsAlloc(allocator);
+    defer std.process.argsFree(allocator, args);
 
     while (args.next()) |arg| {
         std.debug.print("Arg: {s}\n", .{arg});
