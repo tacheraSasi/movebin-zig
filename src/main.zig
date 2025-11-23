@@ -24,7 +24,9 @@ pub fn main() !void {
         std.debug.print("File does not exist: {s}\n", .{bin_path});
         return;
     }
-    for (args) |arg| {
-        std.debug.print("Arg: {s}\n", .{arg});
-    }
+
+    const dest_path = try std.fs.path.join(allocator, &.{ "/usr/local/bin", std.fs.path.basename(bin_path) });
+    defer allocator.free(dest_path);
+
+    std.debug.print("Destination Path: {s}\n", .{dest_path});
 }
