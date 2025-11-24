@@ -62,7 +62,7 @@ pub fn askYesNo(prompt: []const u8, default_yes: bool) !bool {
     return error.Unimplemented;
 }
 
-pub fn isForceFlagEnabled(comptime args: []const []const u8) bool {
+pub fn isForceFlagEnabled(args: []const []const u8) bool {
     for (args) |arg| {
         if (std.mem.eql(u8, arg, "-f") or std.mem.eql(u8, arg, "--force")) {
             return true;

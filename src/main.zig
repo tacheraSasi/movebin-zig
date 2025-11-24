@@ -30,10 +30,14 @@ pub fn main() !void {
 
     const does_dest_exist = try utils.fileExists(dest_path);
     if (does_dest_exist) {
-        const overwrite = try utils.askYesNo("Destination file already exists. Do you want to overwrite it?", false);
+        std.debug.print("File already exists at destination: {s}\n", .{dest_path});
+        // const overwrite = try utils.askYesNo("Destination file already exists. Do you want to overwrite it?", false);
+        const overwrite = utils.isForceFlagEnabled(args);
         if (!overwrite) {
             return;
         }
+        std.debug.print("Force flag enabled.\n", .{});
+        std.debug.print("Overwriting existing file at destination: {s}\n", .{dest_path});
     }
 
     std.debug.print("Destination Path: {s}\n", .{dest_path});
