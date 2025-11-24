@@ -13,24 +13,30 @@ pub fn fileExists(path: []const u8) !bool {
 
 /// Prompt the user with a yes/no question.
 pub fn askYesNo(prompt: []const u8, default_yes: bool) !bool {
-    var stdin_buf: [4096]u8 = undefined; // 4KB buffer for stdin
+    var stdin_buf: [4096]u8 = undefined; // 4KB buffer for stdin reader
     var stdin_reader = std.fs.File.stdin().reader(&stdin_buf);
+    const reader = &stdin_reader.interface;
 
-    var stdout_buf: [4096]u8 = undefined; // 4KB buffer for stdout
+    var stdout_buf: [4096]u8 = undefined; // 4KB buffer for stdout writer
     var stdout_writer = std.fs.File.stdout().writer(&stdout_buf);
     const writer = &stdout_writer.interface;
 
     while (true) {
         if (default_yes) {
             try writer.print("{s} [Y/n]: ", .{prompt});
-            try writer.flush();
         } else {
             try writer.print("{s} [y/N]: ", .{prompt});
-            try writer.flush();
         }
+        try writer.flush(); // I Ensure the prompt is visible immediately
 
-        const line = try stdin_reader.readUntilDelimiterOrEof(&stdin_buf, '\n');
-        const trimmed = std.mem.trimRight(u8, line, "\r\n");
+        var line_buf: [512]u8 = undefined; // NOTE: Here I Separate buffer for the input line 
+        const mb_line = try reader.readUntilDelimiterOrEof(line_buf[0..], '\n');
+        const line = mb_line orelse return default_yes; // Treating EOF as default
+
+        // Will Handle Windows \r\n 
+        // For now I Only trim \r from the right end
+        // Since movebin is only for posix, I won't handle other whitespace
+        const trimmed = std.mem.trimRight(u8, line, "\r"); 
 
         if (trimmed.len == 0) {
             return default_yes;
@@ -40,6 +46,7 @@ pub fn askYesNo(prompt: []const u8, default_yes: bool) !bool {
         if (c == 'y') return true;
         if (c == 'n') return false;
 
-        try std.debug.print("Invalid input. Please type y or n.\n", .{});
+        try writer.print("Invalid input. Please type y or n.\n", .{});
+        try writer.flush();
     }
 }
