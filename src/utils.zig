@@ -62,6 +62,7 @@ pub fn askYesNo(prompt: []const u8, default_yes: bool) !bool {
     return error.Unimplemented;
 }
 
+/// Check if the force flag (-f or --force) is present in the arguments.
 pub fn isForceFlagEnabled(args: []const []const u8) bool {
     for (args) |arg| {
         if (std.mem.eql(u8, arg, "-f") or std.mem.eql(u8, arg, "--force")) {
