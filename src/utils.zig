@@ -23,20 +23,28 @@ pub fn askYesNo(prompt: []const u8, default_yes: bool) !bool {
 
     while (true) {
         if (default_yes) {
-            try writer.print("{s} [Y/n]: ", .{prompt});
+            try writer.*.print("{s} [Y/n]: ", .{prompt});
         } else {
-            try writer.print("{s} [y/N]: ", .{prompt});
+            try writer.*.print("{s} [y/N]: ", .{prompt});
         }
-        try writer.flush(); // I Ensure the prompt is visible immediately
+        try writer.*.flush(); // I Ensure the prompt is visible immediately
 
-        var line_buf: [512]u8 = undefined; // NOTE: Here I Separate buffer for the input line 
-        const mb_line = try reader.readUntilDelimiterOrEof(line_buf[0..], '\n');
-        const line = mb_line orelse return default_yes; // Treating EOF as default
+        var line_buf: [512]u8 = undefined; // HERE i Separate buffer for the input line
+        var fbs = std.io.fixedBufferStream(line_buf[0..]);
+        const line_writer = fbs.writer();
 
-        // Will Handle Windows \r\n 
-        // For now I Only trim \r from the right end
-        // Since movebin is only for posix, I won't handle other whitespace
-        const trimmed = std.mem.trimRight(u8, line, "\r"); 
+        reader.*.streamUntilDelimiter(line_writer, '\n', null) catch |err| {
+            if (err == error.EndOfStream) {
+                if (fbs.pos == 0) return default_yes;
+                // Proceeding with partial line if any data was read before EOF
+            } else return err;
+        };
+
+        const line = fbs.getWritten();
+
+        // Handle Windows \r\n by trimming trailing \r
+        // (Since movebin is POSIX-only, no extra whitespace trimming needed)
+        const trimmed = std.mem.trimRight(u8, line, "\r");
 
         if (trimmed.len == 0) {
             return default_yes;
@@ -46,7 +54,7 @@ pub fn askYesNo(prompt: []const u8, default_yes: bool) !bool {
         if (c == 'y') return true;
         if (c == 'n') return false;
 
-        try writer.print("Invalid input. Please type y or n.\n", .{});
-        try writer.flush();
+        try writer.*.print("Invalid input. Please type y or n.\n", .{});
+        try writer.*.flush();
     }
 }
