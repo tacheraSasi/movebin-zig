@@ -18,14 +18,15 @@ pub fn askYesNo(prompt: []const u8, default_yes: bool) !bool {
 
     var stdout_buf: [4096]u8 = undefined; // 4KB buffer for stdout
     var stdout_writer = std.fs.File.stdout().writer(&stdout_buf);
+    const writer = &stdout_writer.interface;
 
     while (true) {
         if (default_yes) {
-            try stdout_writer.print("{s} [Y/n]: ", .{prompt});
-            try stdout_writer.flush();
+            try writer.print("{s} [Y/n]: ", .{prompt});
+            try writer.flush();
         } else {
-            try stdout_writer.print("{s} [y/N]: ", .{prompt});
-            try stdout_writer.flush();
+            try writer.print("{s} [y/N]: ", .{prompt});
+            try writer.flush();
         }
 
         const line = try stdin_reader.readUntilDelimiterOrEof(&stdin_buf, '\n');
