@@ -1,6 +1,7 @@
 const std = @import("std");
 const fs = std.fs;
 
+/// Check if a file exists at the given path.
 pub fn fileExists(path: []const u8) !bool {
     var found = true;
     fs.cwd().access(path, .{}) catch |err| switch (err) {
@@ -10,8 +11,9 @@ pub fn fileExists(path: []const u8) !bool {
     return found;
 }
 
+/// Prompt the user with a yes/no question.
 pub fn askYesNo(prompt: []const u8, default_yes: bool) !bool {
-    var stdin = std.Io.getStdIn().reader();
+    var stdin = std.io.getStdIn().reader();
 
     var buf: [16]u8 = undefined;
 
