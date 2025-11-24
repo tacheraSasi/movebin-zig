@@ -13,18 +13,22 @@ pub fn fileExists(path: []const u8) !bool {
 
 /// Prompt the user with a yes/no question.
 pub fn askYesNo(prompt: []const u8, default_yes: bool) !bool {
-    var stdin = std.io.getStdIn().reader();
+    var stdin_buf: [4096]u8 = undefined; // 4KB buffer for stdin
+    var stdin_reader = std.fs.File.stdin().reader(&stdin_buf);
 
-    var buf: [16]u8 = undefined;
+    var stdout_buf: [4096]u8 = undefined; // 4KB buffer for stdout
+    var stdout_writer = std.fs.File.stdout().writer(&stdout_buf);
 
     while (true) {
         if (default_yes) {
-            try std.debug.print("{s} [Y/n]: ", .{prompt});
+            try stdout_writer.print("{s} [Y/n]: ", .{prompt});
+            try stdout_writer.flush();
         } else {
-            try std.debug.print("{s} [y/N]: ", .{prompt});
+            try stdout_writer.print("{s} [y/N]: ", .{prompt});
+            try stdout_writer.flush();
         }
 
-        const line = try stdin.readUntilDelimiterOrEof(&buf, '\n');
+        const line = try stdin_reader.readUntilDelimiterOrEof(&stdin_buf, '\n');
         const trimmed = std.mem.trimRight(u8, line, "\r\n");
 
         if (trimmed.len == 0) {
