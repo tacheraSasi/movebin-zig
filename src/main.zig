@@ -31,7 +31,6 @@ pub fn main() !void {
     const does_dest_exist = try utils.fileExists(dest_path);
     if (does_dest_exist) {
         std.debug.print("File already exists at destination: {s}\n", .{dest_path});
-        // const overwrite = try utils.askYesNo("Destination file already exists. Do you want to overwrite it?", false);
         const overwrite = utils.isForceFlagEnabled(args);
         if (!overwrite) {
             std.debug.print("Aborting installation to avoid overwriting existing file.\n", .{});
@@ -43,7 +42,10 @@ pub fn main() !void {
         }
         std.debug.print("Force flag enabled.\n", .{});
         std.debug.print("Overwriting existing file at destination: {s}\n", .{dest_path});
+        try utils.deleteExistingBin(dest_path);
     }
+    try std.fs.copyFile(bin_path, dest_path);
+    try std.fs.File.setPermissions(dest_path, .{ .user = .rwx, .group = .rx, .other = .rx });
+    std.debug.print("Successfully moved binary to {s}\n", .{dest_path});
 
-    std.debug.print("Destination Path: {s}\n", .{dest_path});
 }
