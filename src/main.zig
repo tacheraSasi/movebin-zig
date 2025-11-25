@@ -12,7 +12,7 @@ pub fn main() !void {
     defer std.process.argsFree(allocator, args);
 
     if (args.len < 2) {
-        std.debug.print("Usage: {s} <binary_path> [args...]\n", .{args[0]});
+        std.debug.print("Usage: movebin <binary_path> [args...]\n", .{});
         return;
     }
 
@@ -34,10 +34,12 @@ pub fn main() !void {
         // const overwrite = try utils.askYesNo("Destination file already exists. Do you want to overwrite it?", false);
         const overwrite = utils.isForceFlagEnabled(args);
         if (!overwrite) {
-            const wantToOverride = try utils.askYesNo("Do you want to override", false);
-            if (!wantToOverride) {
-                return;
-            }
+            std.debug.print("Aborting installation to avoid overwriting existing file.\n", .{});
+            return;
+            // const wantToOverride = try utils.askYesNo("Do you want to override", false);
+            // if (!wantToOverride) {
+            //     return;
+            // }
         }
         std.debug.print("Force flag enabled.\n", .{});
         std.debug.print("Overwriting existing file at destination: {s}\n", .{dest_path});
