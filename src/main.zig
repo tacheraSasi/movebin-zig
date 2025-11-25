@@ -34,7 +34,10 @@ pub fn main() !void {
         // const overwrite = try utils.askYesNo("Destination file already exists. Do you want to overwrite it?", false);
         const overwrite = utils.isForceFlagEnabled(args);
         if (!overwrite) {
-            return;
+            const wantToOverride = try utils.askYesNo("Do you want to override", false);
+            if (!wantToOverride) {
+                return;
+            }
         }
         std.debug.print("Force flag enabled.\n", .{});
         std.debug.print("Overwriting existing file at destination: {s}\n", .{dest_path});
