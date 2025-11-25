@@ -13,57 +13,51 @@ pub fn fileExists(path: []const u8) !bool {
 
 /// Prompt the user with a yes/no question.
 pub fn askYesNo(prompt: []const u8, default_yes: bool) !bool {
-    var stdin_buf: [4096]u8 = undefined; // 4KB buffer for stdin reader
-    var stdin_reader = std.fs.File.stdin().reader(&stdin_buf);
-    const reader = &stdin_reader.interface;
+    _ = prompt;
+    _ = default_yes;
+    // var stdin_buf: [4096]u8 = undefined; // 4KB buffer for stdin reader
+    // var stdin_reader = std.fs.File.stdin().reader(&stdin_buf);
+    // const reader = &stdin_reader.interface;
 
-    var stdout_buf: [4096]u8 = undefined; // 4KB buffer for stdout writer
-    var stdout_writer = std.fs.File.stdout().writer(&stdout_buf);
-    const writer = &stdout_writer.interface;
+    // var stdout_buf: [4096]u8 = undefined; // 4KB buffer for stdout writer
+    // var stdout_writer = std.fs.File.stdout().writer(&stdout_buf);
+    // const writer = &stdout_writer.interface;
 
-    while (true) {
-        if (default_yes) {
-            try writer.print("{s} [Y/n]: ", .{prompt});
-        } else {
-            try writer.print("{s} [y/N]: ", .{prompt});
-        }
-        try writer.flush(); // I Ensure the prompt is visible immediately
+    // while (true) {
+    //     if (default_yes) {
+    //         try writer.*.print("{s} [Y/n]: ", .{prompt});
+    //     } else {
+    //         try writer.*.print("{s} [y/N]: ", .{prompt});
+    //     }
+    //     try writer.*.flush(); // I Ensure the prompt is visible immediately
 
-        var line_buf: [512]u8 = undefined; // HERE: I Separate buffer for the input line
-        var fbs = std.io.fixedBufferStream(&line_buf);
-        const line_writer = fbs.writer();
+    //     var line_buf: [512]u8 = undefined; // HERE i Separate buffer for the input line
+    //     var fbs = std.io.fixedBufferStream(line_buf[0..]);
+    //     const line_writer = fbs.writer();
 
-        reader.streamUntilDelimiter(line_writer, '\n', null) catch |err| {
-            if (err == error.EndOfStream) {
-                if (fbs.pos == 0) return default_yes;
-                // Proceeding with partial line if any data was read before EOF
-            } else return err;
-        };
+    //     reader.*.streamUntilDelimiter(line_writer, '\n', null) catch |err| {
+    //         if (err == error.EndOfStream) {
+    //             if (fbs.pos == 0) return default_yes;
+    //             // Proceeding with partial line if any data was read before EOF
+    //         } else return err;
+    //     };
 
-        const line = fbs.getWritten();
+    //     const line = fbs.getWritten();
 
-        // Handling Windows \r\n by trimming trailing \r
-        const trimmed = std.mem.trimRight(u8, line, "\r");
+    //     // Handle Windows \r\n by trimming trailing \r
+    //     // (Since movebin is POSIX-only, no extra whitespace trimming needed)
+    //     const trimmed = std.mem.trimRight(u8, line, "\r");
 
-        if (trimmed.len == 0) {
-            return default_yes;
-        }
+    //     if (trimmed.len == 0) {
+    //         return default_yes;
+    //     }
 
-        const c = std.ascii.toLower(trimmed[0]);
-        if (c == 'y') return true;
-        if (c == 'n') return false;
+    //     const c = std.ascii.toLower(trimmed[0]);
+    //     if (c == 'y') return true;
+    //     if (c == 'n') return false;
 
-        try writer.print("Invalid input. Please type y or n.\n", .{});
-        try writer.flush();
-    }
-}
-
-/// Check if the force flag (-f or --force) is present in the arguments.
-pub fn isForceFlagEnabled(args: []const []const u8) bool {
-    for (args) |arg| {
-        if (std.mem.eql(u8, arg, "-f") or std.mem.eql(u8, arg, "--force")) {
-            return true;
-        }
-    }
-    return false;
+    //     try writer.*.print("Invalid input. Please type y or n.\n", .{});
+    //     try writer.*.flush();
+    // }
+    return error.Unimplemented;
 }
