@@ -12,7 +12,7 @@ pub fn main() !void {
     defer std.process.argsFree(allocator, args);
 
     if (args.len < 2) {
-        std.debug.print("Usage: movebin <binary_path> [args...]\n", .{});
+        std.debug.print("Usage: sudo movebin <binary_path> [args...]\n", .{});
         return;
     }
 
