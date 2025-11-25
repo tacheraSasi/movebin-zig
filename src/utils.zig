@@ -75,6 +75,9 @@ pub fn isForceFlagEnabled(args: []const []const u8) bool {
 ///Copy the bin to the destination path
 pub fn copyToDestination(src_path: []const u8, dest_path: []const u8) !void {
     try fs.cwd().copyFile(src_path, std.fs.cwd(), dest_path, .{});
+    // const dest_file = try fs.cwd().openFile(dest_path, .{ .read = true, .write = true });
+    // defer dest_file.close();
+    // try fs.File.setPermissions(dest_file, .{ .user = .rwx, .group = .rx, .other = .rx });
 }
 
 //TODO: Add a function to back up existing binary before deletion

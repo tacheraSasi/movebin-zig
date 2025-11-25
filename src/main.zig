@@ -44,8 +44,7 @@ pub fn main() !void {
         std.debug.print("Overwriting existing file at destination: {s}\n", .{dest_path});
         try utils.deleteExistingBin(dest_path);
     }
-    try std.fs.copyFile(bin_path, dest_path);
-    try std.fs.File.setPermissions(dest_path, .{ .user = .rwx, .group = .rx, .other = .rx });
+    try utils.copyToDestination(bin_path, dest_path);
     std.debug.print("Successfully moved binary to {s}\n", .{dest_path});
 
 }
