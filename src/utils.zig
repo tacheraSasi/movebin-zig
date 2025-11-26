@@ -15,9 +15,9 @@ pub fn fileExists(path: []const u8) !bool {
 pub fn askYesNo(prompt: []const u8, default_yes: bool) !bool {
     _ = prompt;
     _ = default_yes;
-    // var stdin_buf: [4096]u8 = undefined; // 4KB buffer for stdin reader
-    // var stdin_reader = std.fs.File.stdin().reader(&stdin_buf);
-    // const reader = &stdin_reader.interface;
+    var stdin_buf: [4096]u8 = undefined; // 4KB buffer for stdin reader
+    var stdin_reader = std.fs.File.stdin().reader(&stdin_buf);
+    const reader = &stdin_reader.interface;
 
     // var stdout_buf: [4096]u8 = undefined; // 4KB buffer for stdout writer
     // var stdout_writer = std.fs.File.stdout().writer(&stdout_buf);
