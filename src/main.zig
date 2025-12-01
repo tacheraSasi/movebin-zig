@@ -34,11 +34,11 @@ pub fn main() !void {
         const overwrite = utils.isForceFlagEnabled(args);
         if (!overwrite) {
             std.debug.print("Aborting installation to avoid overwriting existing file.\n", .{});
-            // return;
-            const wantToOverride = try utils.askYesNo("Do you want to override", false);
-            if (!wantToOverride) {
-                return;
-            }
+            return;
+            // const wantToOverride = try utils.askYesNo("Do you want to override", false);
+            // if (!wantToOverride) {
+            //     return;
+            // }
         }
         std.debug.print("Force flag enabled.\n", .{});
         std.debug.print("Overwriting existing file at destination: {s}\n", .{dest_path});
