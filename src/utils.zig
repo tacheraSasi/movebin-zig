@@ -34,33 +34,14 @@ pub fn askYesNo(prompt: []const u8, default_yes: bool) !bool {
         } else {
             try console.print("{s} [y/N]: ", .{prompt});
         }
-        var line_buf: [512]u8 = undefined; // HERE i Separate buffer for the input line
-        var fbs = std.io.fixedBufferStream(line_buf[0..]);
-        // const line_writer = fbs.writer();
-
-        reader.*.takeDelimiterExclusive('\n') catch |err| {
-            if (err == error.EndOfStream) {
-                if (fbs.pos == 0) return default_yes;
-                // Proceeding with partial line if any data was read before EOF
-            } else return err;
-        };
-
-        const line = fbs.getWritten();
-
-        // Handle Windows \r\n by trimming trailing \r
-        // (Since movebin is POSIX-only, no extra whitespace trimming needed)
-        const trimmed = std.mem.trimRight(u8, line, "\r");
-
-        if (trimmed.len == 0) {
-            return default_yes;
-        }
+        
+        
 
         const c = std.ascii.toLower(trimmed[0]);
         if (c == 'y') return true;
         if (c == 'n') return false;
 
-        try writer.*.print("Invalid input. Please type y or n.\n", .{});
-        try writer.*.flush();
+        try console.print("Invalid input. Please type y or n.\n", .{});
     }
 }
 
