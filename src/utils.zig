@@ -16,17 +16,8 @@ pub fn fileExists(path: []const u8) !bool {
 pub fn askYesNo(prompt: []const u8, default_yes: bool) !bool {
    	var write_buffer:[1024]u8 = undefined;
 	var read_buffer:[1024]u8 = undefined;
-	var console:Console = undefined;
-	console.init(&write_buffer, &read_buffer);
-   
-	try console.printLine("Hello World!", .{});
-    var stdin_buf: [4096]u8 = undefined; // 4KB buffer for stdin reader
-    var stdin_reader = std.fs.File.stdin().reader(&stdin_buf);
-    const reader = &stdin_reader.interface;
-
-    var stdout_buf: [4096]u8 = undefined; // 4KB buffer for stdout writer
-    var stdout_writer = std.fs.File.stdout().writer(&stdout_buf);
-    const writer = &stdout_writer.interface;
+    var console:Console = undefined;
+    console.init(&write_buffer, &read_buffer);
 
     while (true) {
         if (default_yes) {
@@ -35,9 +26,9 @@ pub fn askYesNo(prompt: []const u8, default_yes: bool) !bool {
             try console.print("{s} [y/N]: ", .{prompt});
         }
         
-        
+        const line:[]u8 = try console.readLine();
 
-        const c = std.ascii.toLower(trimmed[0]);
+        const c = std.ascii.toLower(line[0]);
         if (c == 'y') return true;
         if (c == 'n') return false;
 
