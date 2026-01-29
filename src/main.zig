@@ -30,25 +30,25 @@ pub fn main() !void {
 
     const does_dest_exist = try utils.fileExists(dest_path);
     if (does_dest_exist) {
-        std.debug.print("File already exists at destination: {s}\n", .{dest_path});
+        try printer("File already exists at destination: {s}\n", .{dest_path});
         const overwrite = utils.isForceFlagEnabled(args);
         if (!overwrite) {
-            std.debug.print("Aborting installation to avoid overwriting existing file.\n", .{});
+            try printer("Aborting installation to avoid overwriting existing file.\n", .{});
             return;
             // const wantToOverride = try utils.askYesNo("Do you want to override", false);
             // if (!wantToOverride) {
             //     return;
             // }
         }
-        std.debug.print("Force flag enabled.\n", .{});
-        std.debug.print("Overwriting existing file at destination: {s}\n", .{dest_path});
+        try printer("Force flag enabled.\n", .{});
+        try printer("Overwriting existing file at destination: {s}\n", .{dest_path});
         try utils.deleteExistingBin(dest_path);
     }
     try utils.copyToDestination(bin_path, dest_path);
-    std.debug.print("Successfully moved binary to {s}\n", .{dest_path});
+    try printer("Successfully moved binary to {s}\n", .{dest_path});
 }
 
-fn printer(fmt: string, args: anytype) !void {
+fn printer(comptime fmt:[]const u8, args: anytype) !void {
     var stdout_buffer: [1024]u8 = undefined;
     var stdout_writer = std.fs.File.stdout().writer(&stdout_buffer);
     const stdout: *std.Io.Writer = &stdout_writer.interface;
