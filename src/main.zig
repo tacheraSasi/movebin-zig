@@ -6,10 +6,15 @@ const string: type = []const u8;
 pub fn main() !void {
     var gpa = heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
+    var stdout_buffer: [1024]u8 = undefined;
     defer _ = gpa.deinit();
 
     const args = try std.process.argsAlloc(allocator);
     defer std.process.argsFree(allocator, args);
+    
+    var stdout_writer = std.fs.File.stdout().writer(&stdout_buffer);
+    const stdout: *std.Io.Writer = &stdout_writer.interface;
+
 
     if (args.len < 2) {
         std.debug.print("Usage: sudo movebin <binary_path> [args...]\n", .{});
