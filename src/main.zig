@@ -11,10 +11,6 @@ pub fn main() !void {
 
     const args = try std.process.argsAlloc(allocator);
     defer std.process.argsFree(allocator, args);
-    
-    var stdout_writer = std.fs.File.stdout().writer(&stdout_buffer);
-    const stdout: *std.Io.Writer = &stdout_writer.interface;
-
 
     if (args.len < 2) {
         std.debug.print("Usage: sudo movebin <binary_path> [args...]\n", .{});
@@ -51,5 +47,12 @@ pub fn main() !void {
     }
     try utils.copyToDestination(bin_path, dest_path);
     std.debug.print("Successfully moved binary to {s}\n", .{dest_path});
+}
 
+fn printer(buffer: []u8, fmt: string, args: anytype) !void {
+    var stdout_writer = std.fs.File.stdout().writer(&buffer);
+    const stdout: *std.Io.Writer = &stdout_writer.interface;
+
+    try stdout.writeAll(fmt, args);
+    try stdout.flush();
 }
