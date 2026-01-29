@@ -2,7 +2,7 @@
 
 A simple Zig utility to move binaries to bin for easy execution from anywhere. Usage: 
 
-```basbh
+```bash
 sudo movebin <binary_path> [args...]
 ```
 
