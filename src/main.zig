@@ -53,6 +53,6 @@ fn printer(fmt: string, args: anytype) !void {
     var stdout_writer = std.fs.File.stdout().writer(&stdout_buffer);
     const stdout: *std.Io.Writer = &stdout_writer.interface;
 
-    try stdout.writeAll(fmt, args);
+    try stdout.print(fmt, args);
     try stdout.flush();
 }
