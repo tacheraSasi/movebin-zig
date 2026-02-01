@@ -44,50 +44,61 @@ pub fn isForceFlagEnabled(args: []const []const u8) bool {
 /// Check if the no-backup flag (--no-backup) is present in the arguments.
 pub fn isNoBackupFlag(args: []const []const u8) bool {
     for (args) |arg| {
-        if  (std.mem.eql(u8, arg, "--no-backup")) {
+        if (std.mem.eql(u8, arg, "--no-backup")) {
             return true;
         }
     }
     return false;
 }
 
+pub fn shouldCreateBackup(force: bool, no_backup: bool) bool {
+    _ = force;
+    if (no_backup) return false;
+    return true; // backup by default — even with force
+    // Alternative (more aggressive): return force or !force;
+}
+
 /// Backup the existing binary and remove it from the destination path.
 /// `usr/local/bin/somebinary` -> `usr/local/bin/.movebin_backups/somebinary_timestamp`
 /// If backup_dir is null, a default hidden directory next to the destination will be used.
 pub fn backupAndRemoveExistingBin(
-    allocator: *std.mem.Allocator,
-    src_path: []const u8,
-    backup_dir: ?[]const u8, // if null, we use default hidden directory next to destination
-) ![]u8 // returns the allocated backup path string
-{
-    const dest_path = try fs.cwd().realPath(src_path);
-    const dest_dir = try fs.path.dirname(allocator, dest_path);
-    var backup_directory: []const u8 = "";
+    allocator: std.mem.Allocator,
+    dest_path: []const u8,
+    backup_dir: ?[]const u8,
+) !?[]u8 { // returns backup path or null if no backup was made
+    if (!try fileExists(dest_path)) {
+        return null;
+    }
 
-    if (backup_dir) {
-        backup_directory = backup_dir.?;
-    } else {
-        backup_directory = try fs.path.join(allocator, &.{ dest_dir, ".movebin_backups" });
+    const dir = fs.path.dirname(dest_path) orelse ".";
+    const filename = fs.path.basename(dest_path);
 
-        if (!try fileExists(backup_directory)) {
-            try fs.cwd().createDir(backup_directory, 0o755);
-        }
+    const backup_parent = backup_dir orelse
+        try fs.path.join(allocator, &.{ dir, ".movebin_backups" });
+
+    defer if (backup_dir == null) allocator.free(backup_parent);
+
+    // Create backup dir if needed
+    if (!try fileExists(backup_parent)) {
+        try fs.cwd().makeDir(backup_parent);
     }
 
     const timestamp = std.time.timestamp();
-    const backup_filename = try fs.path.basename(allocator, dest_path);
+    const backup_name = try std.fmt.allocPrint(
+        allocator,
+        "{s}_{d}",
+        .{ filename, timestamp },
+    );
+    defer allocator.free(backup_name);
+
     const backup_path = try fs.path.join(
         allocator,
-        &.{ backup_directory, std.fmt.allocPrint(allocator, "{s}_{d}", .{ backup_filename, timestamp }) },
+        &.{ backup_parent, backup_name },
     );
 
-    // Copy the existing binary to the backup location
-    try fs.cwd().copyFile(dest_path, std.fs.cwd(), backup_path, .{});
+    try fs.cwd().copyFile(dest_path, fs.cwd(), backup_path, .{});
 
-    // TODO: i will implement retention logic here to delete old backups
-
-    // Delete the existing binary
-    try deleteExistingBin(dest_path);
+    try fs.deleteFileAbsolute(dest_path);
 
     return backup_path;
 }
