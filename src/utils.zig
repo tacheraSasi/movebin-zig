@@ -31,6 +31,15 @@ pub fn askYesNo(console: Console, prompt: []const u8, default_yes: bool) !bool {
     }
 }
 
+pub fn isVersionFlagEnabled(args: []const []const u8) bool {
+    for (args) |arg| {
+        if (std.mem.eql(u8, arg, "-v") or std.mem.eql(u8, arg, "--version")) {
+            return true;
+        }
+    }
+    return false;
+}
+
 /// Check if the force flag (-f or --force) is present in the arguments.
 pub fn isForceFlagEnabled(args: []const []const u8) bool {
     for (args) |arg| {
