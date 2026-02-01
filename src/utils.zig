@@ -51,7 +51,7 @@ pub fn isNoBackupFlag(args: []const []const u8) bool {
     return false;
 }
 
-fn shouldCreateBackup(force: bool, no_backup: bool) bool {
+pub fn shouldCreateBackup(force: bool, no_backup: bool) bool {
     _ = force;
     if (no_backup) return false;
     return true; // backup by default — even with force
@@ -98,7 +98,7 @@ pub fn backupAndRemoveExistingBin(
 
     try fs.cwd().copyFile(dest_path, fs.cwd(), backup_path, .{});
 
-    try fs.deleteFile(dest_path);
+    try fs.deleteFileAbsolute(dest_path);
 
     return backup_path;
 }
