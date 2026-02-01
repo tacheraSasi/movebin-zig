@@ -12,21 +12,17 @@ pub fn fileExists(path: []const u8) !bool {
     return found;
 }
 
-/// Prompt the user with a yes/no question.
-pub fn askYesNo(prompt: []const u8, default_yes: bool) !bool {
-   	var write_buffer:[1024]u8 = undefined;
-	var read_buffer:[1024]u8 = undefined;
-    var console:Console = undefined;
-    console.init(&write_buffer, &read_buffer);
 
+/// Prompt the user with a yes/no question.
+pub fn askYesNo(console:Console, prompt: []const u8, default_yes: bool) !bool {
     while (true) {
         if (default_yes) {
             try console.print("{s} [Y/n]: ", .{prompt});
         } else {
             try console.print("{s} [y/N]: ", .{prompt});
         }
-        
-        const line:[]u8 = try console.readLine();
+
+        const line: []u8 = try console.readLine();
 
         const c = std.ascii.toLower(line[0]);
         if (c == 'y') return true;
