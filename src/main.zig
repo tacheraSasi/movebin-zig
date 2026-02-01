@@ -29,7 +29,9 @@ pub fn main() !void {
     }
     const dest_path = try std.fs.path.join(allocator, &.{ "/usr/local/bin", std.fs.path.basename(bin_path) });
     defer allocator.free(dest_path);
+
     const does_dest_exist = try utils.fileExists(dest_path);
+    
     if (does_dest_exist) {
         try console.printLine("File already exists at destination: {s}\n", .{dest_path});
         const overwrite = utils.isForceFlagEnabled(args);
