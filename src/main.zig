@@ -2,6 +2,7 @@ const std = @import("std");
 const fs = std.fs;
 const utils = @import("utils.zig");
 const Console = @import("console.zig").Console;
+const constants = @import("constants.zig");
 
 const heap = std.heap;
 const string: type = []const u8;
@@ -21,6 +22,12 @@ pub fn main() !void {
 
     if (args.len < 2) {
         try console.printLine("Usage: sudo movebin <binary_path> [-f|--force] [--no-backup]\n", .{});
+        return;
+    }
+    
+    const version_enabled = utils.isVersionFlagEnabled(args);
+    if (version_enabled) {
+        try console.printLine("movebin version {s}\n", .{constants.VERSION});
         return;
     }
 
