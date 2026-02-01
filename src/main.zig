@@ -1,8 +1,9 @@
 const std = @import("std");
-const heap = std.heap;
 const utils = @import("utils.zig");
-const string: type = []const u8;
 const Console = @import("console.zig").Console;
+
+const heap = std.heap;
+const string: type = []const u8;
 
 pub fn main() !void {
     var gpa = heap.GeneralPurposeAllocator(.{}){};
