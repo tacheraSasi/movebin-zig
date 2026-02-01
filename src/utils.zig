@@ -46,17 +46,17 @@ pub fn backupAndRemoveExistingBin(
     allocator: *std.mem.Allocator,
     src_path: []const u8,
     backup_dir: ?[]const u8, // if null, we use default hidden directory next to destination
-    keep_backups: ?usize,    // retention (keep last N backups)
 ) ![]u8 // returns the allocated backup path string
-{}
+{
     const dest_path = try fs.cwd().realPath(src_path);
     const dest_dir = try fs.path.dirname(allocator, dest_path);
     var backup_directory: []const u8 = "";
-    if (backup_dir) |dir| {
-        backup_directory = dir;
+    
+    if (backup_dir)  {
+        backup_directory = backup_dir.?;
     } else {
-        backup_directory = try fs.path.join(allocator, &.{dest_dir, ".backup_bins"});
-        // Create the backup directory if it doesn't exist
+        backup_directory = try fs.path.join(allocator, &.{dest_dir, ".movebin_backups"});
+        
         if (!try fileExists(backup_directory)) {
             try fs.cwd().createDir(backup_directory, 0o755);
         }
@@ -78,6 +78,7 @@ pub fn backupAndRemoveExistingBin(
     try deleteExistingBin(dest_path);
 
     return backup_path;
+}
 ///Copy the bin to the destination path
 pub fn copyToDestination(src_path: []const u8, dest_path: []const u8) !void {
     try fs.cwd().copyFile(src_path, std.fs.cwd(), dest_path, .{});
