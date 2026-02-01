@@ -45,8 +45,8 @@ pub fn isForceFlagEnabled(args: []const []const u8) bool {
 pub fn backupAndRemoveExistingBin(
     allocator: *std.mem.Allocator,
     src_path: []const u8,
-    backup_dir: ?[]const u8, // if null, use default hidden directory next to destination
-    keep_backups: ?usize,    // optional retention (keep last N backups)
+    backup_dir: ?[]const u8, // if null, we use default hidden directory next to destination
+    keep_backups: ?usize,    // retention (keep last N backups)
 ) ![]u8 // returns the allocated backup path string
 {}
     const dest_path = try fs.cwd().realPath(src_path);
