@@ -21,8 +21,8 @@ pub fn main() !void {
     var console: Console = undefined;
     console.init(&write_buffer, &read_buffer);
 
-    if (cli.getArgs().len == 1) { // i check if there are no arguments
-        try console.printLine("Usage: sudo movebin <binary_path> [-f|--force] [--no-backup]\n", .{});
+    if (cli.getArgs().len == 0) { // i check if there are no arguments
+        try console.printLine(utils.HelpText(), .{});
         return;
     }
     
@@ -31,7 +31,13 @@ pub fn main() !void {
         try console.printLine("movebin version {s}\n", .{constants.VERSION});
         return;
     }
-
+    
+    const help_enabled = cli.isHelpFlagEnabled();
+    if (help_enabled) {
+        try console.printLine(utils.HelpText(), .{});
+        return;
+    }
+    
     const src_path = cli.getArgs()[0];
     if (!try utils.fileExists(src_path)) {
         try console.printLine("Source file not found: {s}\n", .{src_path});

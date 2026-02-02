@@ -58,6 +58,15 @@ pub const CliFlags = struct {
         }
         return false;
     }
+    
+    pub fn isHelpFlagEnabled(self: *const Self) bool {
+        for (self.getArgs()) |arg| {
+            if (std.mem.eql(u8, arg, "-h") or std.mem.eql(u8, arg, "--help")) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     /// Checks if the force flag is enabled
     pub fn isForceFlagEnabled(self: *const Self) bool {
