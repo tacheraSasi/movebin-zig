@@ -14,14 +14,14 @@ pub fn main() !void {
     defer _ = gpa.deinit();
     
     const cli = try CliFlags.init(allocator);
-    defer cli.argsFree();
+    defer cli.deinit();
 
     var write_buffer: [1024]u8 = undefined;
     var read_buffer: [1024]u8 = undefined;
     var console: Console = undefined;
     console.init(&write_buffer, &read_buffer);
 
-    if (cli.getArgs().len < 2) {
+    if (cli.getArgs().len == 1) { // i check if there are no arguments
         try console.printLine("Usage: sudo movebin <binary_path> [-f|--force] [--no-backup]\n", .{});
         return;
     }
