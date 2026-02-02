@@ -13,7 +13,7 @@ pub fn main() !void {
     const allocator = gpa.allocator();
     defer _ = gpa.deinit();
     
-    const cli = CliFlags.init(allocator, try std.process.argsAlloc(allocator));
+    const cli = try CliFlags.init(allocator);
     defer cli.argsFree();
 
     var write_buffer: [1024]u8 = undefined;
@@ -21,7 +21,7 @@ pub fn main() !void {
     var console: Console = undefined;
     console.init(&write_buffer, &read_buffer);
 
-    if (cli.len() < 2) {
+    if (cli.getArgs().len < 2) {
         try console.printLine("Usage: sudo movebin <binary_path> [-f|--force] [--no-backup]\n", .{});
         return;
     }
@@ -32,7 +32,7 @@ pub fn main() !void {
         return;
     }
 
-    const src_path = cli.args()[0];
+    const src_path = cli.getArgs()[0];
     if (!try utils.fileExists(src_path)) {
         try console.printLine("Source file not found: {s}\n", .{src_path});
         return;
