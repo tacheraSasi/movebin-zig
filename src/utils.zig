@@ -126,3 +126,8 @@ pub fn copyToDestination(src_path: []const u8, dest_path: []const u8) !void {
 pub fn deleteExistingBin(path: []const u8) !void {
     try fs.deleteFileAbsolute(path);
 }
+
+/// Returns the help text for the movebin command.
+pub fn HelpText() []const u8 {
+    return "Usage: sudo movebin <binary_path> [-f|--force] [--no-backup]\n";
+}
