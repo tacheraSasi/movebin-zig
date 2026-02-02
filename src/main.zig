@@ -3,6 +3,7 @@ const fs = std.fs;
 const utils = @import("utils.zig");
 const Console = @import("console.zig").Console;
 const constants = @import("constants.zig");
+const CliFlags = @import("cli-flags.zig").CliFlags;
 
 const heap = std.heap;
 const string: type = []const u8;
@@ -11,27 +12,27 @@ pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
     defer _ = gpa.deinit();
-
-    const args = try std.process.argsAlloc(allocator);
-    defer std.process.argsFree(allocator, args);
+    
+    const cli = CliFlags.init(allocator, try std.process.argsAlloc(allocator));
+    defer cli.argsFree();
 
     var write_buffer: [1024]u8 = undefined;
     var read_buffer: [1024]u8 = undefined;
     var console: Console = undefined;
     console.init(&write_buffer, &read_buffer);
 
-    if (args.len < 2) {
+    if (cli.len() < 2) {
         try console.printLine("Usage: sudo movebin <binary_path> [-f|--force] [--no-backup]\n", .{});
         return;
     }
     
-    const version_enabled = utils.isVersionFlagEnabled(args);
+    const version_enabled = cli.isVersionFlagEnabled();
     if (version_enabled) {
         try console.printLine("movebin version {s}\n", .{constants.VERSION});
         return;
     }
 
-    const src_path = args[1];
+    const src_path = cli.args()[0];
     if (!try utils.fileExists(src_path)) {
         try console.printLine("Source file not found: {s}\n", .{src_path});
         return;
@@ -41,8 +42,8 @@ pub fn main() !void {
     const dest_path = try std.fs.path.join(allocator, &.{ "/usr/local/bin", dest_filename });
     defer allocator.free(dest_path);
 
-    const force = utils.isForceFlagEnabled(args);
-    const no_backup = utils.isNoBackupFlag(args);
+    const force = cli.isForceFlagEnabled();
+    const no_backup = cli.isNoBackupFlagEnabled();
 
     var backed_up_path: ?[]u8 = null;
     defer if (backed_up_path) |p| allocator.free(p);
