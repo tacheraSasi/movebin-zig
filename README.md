@@ -61,3 +61,7 @@ sudo movebin ./my-tool
 2. Make your changes and run `zig build` (or `zig test` if you add tests).
 3. Open a pull request with a clear description of your changes.
 
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
