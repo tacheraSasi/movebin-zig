@@ -58,7 +58,8 @@ pub const CliFlags = struct {
         }
         return false;
     }
-    
+
+    /// Checks if the help flag is enabled
     pub fn isHelpFlagEnabled(self: *const Self) bool {
         for (self.getArgs()) |arg| {
             if (std.mem.eql(u8, arg, "-h") or std.mem.eql(u8, arg, "--help")) {
@@ -86,5 +87,61 @@ pub const CliFlags = struct {
             }
         }
         return false;
+    }
+
+    /// Get the custom output name if -o flag is provided
+    /// Returns null if no -o flag is found
+    pub fn getOutputName(self: *const Self) ?[:0]const u8 {
+        const args_slice = self.getArgs();
+        var i: usize = 0;
+        while (i < args_slice.len) : (i += 1) {
+            const arg = args_slice[i];
+
+            // Check for -o flag
+            if (std.mem.eql(u8, arg, "-o")) {
+                // Next argument should be the output name
+                if (i + 1 < args_slice.len) {
+                    return args_slice[i + 1];
+                }
+                // -o provided but no value - could handle error here
+                return null;
+            }
+
+            // Check for --output flag (optional long form)
+            if (std.mem.eql(u8, arg, "--output")) {
+                if (i + 1 < args_slice.len) {
+                    return args_slice[i + 1];
+                }
+                return null;
+            }
+        }
+        return null;
+    }
+
+    /// Get non-flag arguments (source path)
+    /// Filters out flags and their values
+    pub fn getPositionalArgs(self: *const Self, allocator: std.mem.Allocator) ![]const [:0]u8 {
+        var positional = std.ArrayList([:0]const u8).init(allocator);
+        errdefer positional.deinit();
+
+        const args_slice = self.getArgs();
+        var i: usize = 0;
+
+        while (i < args_slice.len) : (i += 1) {
+            const arg = args_slice[i];
+
+            // Skip flags
+            if (std.mem.startsWith(u8, arg, "-")) {
+                // Skip value-taking flags
+                if (std.mem.eql(u8, arg, "-o") or std.mem.eql(u8, arg, "--output")) {
+                    i += 1; // Skip the next arg (the value)
+                }
+                continue;
+            }
+
+            try positional.append(arg);
+        }
+
+        return positional.toOwnedSlice();
     }
 };
