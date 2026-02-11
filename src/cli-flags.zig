@@ -121,27 +121,39 @@ pub const CliFlags = struct {
     /// Get non-flag arguments (source path)
     /// Filters out flags and their values
     pub fn getPositionalArgs(self: *const Self, allocator: std.mem.Allocator) ![]const [:0]u8 {
-        var positional = std.ArrayList([:0]const u8).init(allocator);
-        errdefer positional.deinit();
-
+        // Count non-flag args first
+        var count: usize = 0;
         const args_slice = self.getArgs();
         var i: usize = 0;
 
         while (i < args_slice.len) : (i += 1) {
             const arg = args_slice[i];
-
-            // Skip flags
             if (std.mem.startsWith(u8, arg, "-")) {
-                // Skip value-taking flags
                 if (std.mem.eql(u8, arg, "-o") or std.mem.eql(u8, arg, "--output")) {
-                    i += 1; // Skip the next arg (the value)
+                    i += 1;
                 }
                 continue;
             }
-
-            try positional.append(arg);
+            count += 1;
         }
 
-        return positional.toOwnedSlice();
+        // Allocate and fill
+        var positional = try allocator.alloc([:0]u8, count);
+        var pos_idx: usize = 0;
+        i = 0;
+
+        while (i < args_slice.len) : (i += 1) {
+            const arg = args_slice[i];
+            if (std.mem.startsWith(u8, arg, "-")) {
+                if (std.mem.eql(u8, arg, "-o") or std.mem.eql(u8, arg, "--output")) {
+                    i += 1;
+                }
+                continue;
+            }
+            positional[pos_idx] = @constCast(arg);
+            pos_idx += 1;
+        }
+
+        return positional;
     }
 };
