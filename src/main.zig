@@ -12,7 +12,7 @@ pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
     defer _ = gpa.deinit();
-    
+
     const cli = try CliFlags.init(allocator);
     defer cli.deinit();
 
@@ -25,26 +25,41 @@ pub fn main() !void {
         try console.printLine(utils.HelpText(), .{});
         return;
     }
-    
+
     const version_enabled = cli.isVersionFlagEnabled();
     if (version_enabled) {
         try console.printLine("movebin version {s}\n", .{constants.VERSION});
         return;
     }
-    
+
     const help_enabled = cli.isHelpFlagEnabled();
     if (help_enabled) {
         try console.printLine(utils.HelpText(), .{});
         return;
     }
-    
-    const src_path = cli.getArgs()[0];
+
+    // Getting the positional arguments (non-flags)
+    const positional_args = try cli.getPositionalArgs(allocator);
+    defer allocator.free(positional_args);
+
+    if (positional_args.len == 0) {
+        try console.printLine("Error: No source file specified\n", .{});
+        try console.printLine(utils.HelpText(), .{});
+        return;
+    }
+
+    const src_path = positional_args[0];
     if (!try utils.fileExists(src_path)) {
         try console.printLine("Source file not found: {s}\n", .{src_path});
         return;
     }
 
-    const dest_filename = std.fs.path.basename(src_path);
+    // Determine destination filename
+    const dest_filename = if (cli.getOutputName()) |custom_name|
+        custom_name
+    else
+        std.fs.path.basename(src_path);
+
     const dest_path = try std.fs.path.join(allocator, &.{ "/usr/local/bin", dest_filename });
     defer allocator.free(dest_path);
 
