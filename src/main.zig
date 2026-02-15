@@ -99,9 +99,11 @@ pub fn main() !void {
 
     try utils.copyToDestination(src_path, dest_path);
 
-    const file = try fs.cwd().openFile(dest_path, .{ .mode = .read_write });
-    defer file.close();
-    try file.chmod(0o755);
+    if (comptime fs.has_executable_bit) {
+        const file = try fs.cwd().openFile(dest_path, .{ .mode = .read_write });
+        defer file.close();
+        try file.chmod(0o755);
+    }
 
     try console.printLine("Successfully installed: {s}\n", .{dest_path});
 }
