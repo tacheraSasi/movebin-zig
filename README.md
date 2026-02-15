@@ -12,7 +12,53 @@ movebin-zig is a small utility to install (move) a local binary into a system di
 - Zig (the project uses the included `build.zig`). Ensure `zig` is available on your PATH.
 - You will generally need elevated privileges (e.g. `sudo`) to install into `/usr/local/bin`.
 
-## Build
+## Installation
+
+### macOS (Apple Silicon)
+
+```bash
+curl -L https://github.com/tacheraSasi/movebin-zig/releases/download/v0.0.3/movebin-v0.0.3-aarch64-macos.tar.gz -o movebin.tar.gz
+sudo tar -C /usr/local/bin -xzf movebin.tar.gz
+rm movebin.tar.gz
+```
+
+### macOS (Intel)
+
+```bash
+curl -L https://github.com/tacheraSasi/movebin-zig/releases/download/v0.0.3/movebin-v0.0.3-x86_64-macos.tar.gz -o movebin.tar.gz
+sudo tar -C /usr/local/bin -xzf movebin.tar.gz
+rm movebin.tar.gz
+```
+
+### Linux (x86_64)
+
+```bash
+curl -L https://github.com/tacheraSasi/movebin-zig/releases/download/v0.0.3/movebin-v0.0.3-x86_64-linux.tar.gz -o movebin.tar.gz
+sudo tar -C /usr/local/bin -xzf movebin.tar.gz
+rm movebin.tar.gz
+```
+
+### Linux (aarch64)
+
+```bash
+curl -L https://github.com/tacheraSasi/movebin-zig/releases/download/v0.0.3/movebin-v0.0.3-aarch64-linux.tar.gz -o movebin.tar.gz
+sudo tar -C /usr/local/bin -xzf movebin.tar.gz
+rm movebin.tar.gz
+```
+
+### Windows (x86_64)
+
+Download the zip from the [latest release](https://github.com/tacheraSasi/movebin-zig/releases/download/v0.0.3/movebin-v0.0.3-x86_64-windows.zip), extract `movebin.exe`, and add it to your PATH.
+
+Or with PowerShell:
+
+```powershell
+Invoke-WebRequest -Uri https://github.com/tacheraSasi/movebin-zig/releases/download/v0.0.3/movebin-v0.0.3-x86_64-windows.zip -OutFile movebin.zip
+Expand-Archive movebin.zip -DestinationPath C:\Windows\System32
+Remove-Item movebin.zip
+```
+
+## Build from source
 
 To build the project locally:
 
