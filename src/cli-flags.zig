@@ -2,7 +2,7 @@ const std = @import("std");
 
 /// Command line flags parser / helper
 pub const CliFlags = struct {
-    args: []const [:0]u8,
+    args: []const [:0]const u8,
     allocator: std.mem.Allocator,
 
     const Self = @This();
@@ -18,7 +18,7 @@ pub const CliFlags = struct {
 
     /// Free the memory allocated for arguments
     pub fn deinit(self: *const Self) void {
-        self.allocator.free(self.args);   // toSlice allocates, so just free
+        self.allocator.free(self.args); // toSlice allocates, so just free
     }
 
     // ────────────────────────────────────────────────
@@ -26,13 +26,13 @@ pub const CliFlags = struct {
     // ────────────────────────────────────────────────
 
     /// Returns only the arguments (excludes program name = args[0])
-    pub fn getArgs(self: *const Self) []const [:0]u8 {
+    pub fn getArgs(self: *const Self) []const [:0]const u8 {
         if (self.args.len == 0) return &[_][:0]u8{};
         return self.args[1..];
     }
 
     /// Returns all arguments including program name
-    pub fn rawArgs(self: *const Self) []const [:0]u8 {
+    pub fn rawArgs(self: *const Self) []const [:0]const u8 {
         return self.args;
     }
 

@@ -59,7 +59,7 @@ pub fn isNoBackupFlag(args: []const []const u8) bool {
     return false;
 }
 
-pub fn shouldCreateBackup(force: bool, no_backup: bool) bool {
+pub fn shouldCreateBackup(no_backup: bool) bool {
     if (no_backup) return false;
     return true; // backup by default
 }

@@ -8,7 +8,7 @@ const string: type = []const u8;
 
 pub fn main(init: std.process.Init) !void {
     const allocator = init.gpa;
-    const io = io;
+    const io = init.io;
 
     const cli = try CliFlags.init(allocator, init);
     defer cli.deinit();
@@ -63,7 +63,7 @@ pub fn main(init: std.process.Init) !void {
     var backed_up_path: ?[]u8 = null;
     defer if (backed_up_path) |p| allocator.free(p);
 
-    const dest_exists = try utils.fileExists(dest_path);
+    const dest_exists = try utils.fileExists(io, dest_path);
     if (dest_exists) {
         if (!force) {
             const confirmed = try utils.askYesNo(console, "Destination already exists. Overwrite?", false);
