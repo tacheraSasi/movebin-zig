@@ -8,7 +8,7 @@ const string: type = []const u8;
 
 pub fn main(init: std.process.Init) !void {
     const allocator = init.gpa;
-    const cli = try CliFlags.init(allocator);
+    const cli = try CliFlags.init(allocator,init);
     defer cli.deinit();
 
     var write_buffer: [1024]u8 = undefined;
