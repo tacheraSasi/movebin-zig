@@ -1,15 +1,13 @@
 const std = @import("std");
-const fs = std.fs;
 const Console = @import("console.zig").Console;
 
 /// Check if a file exists at the given path.
-pub fn fileExists(path: []const u8) !bool {
-    var found = true;
-    fs.cwd().access(path, .{}) catch |err| switch (err) {
-        error.FileNotFound => found = false,
+pub fn fileExists(io: std.Io, path: []const u8) !bool {
+    std.Io.Dir.cwd().access(io, path, .{}) catch |err| switch (err) {
+        error.FileNotFound => return false,
         else => return err,
     };
-    return found;
+    return true;
 }
 
 /// Prompt the user with a yes/no question.
@@ -20,17 +18,18 @@ pub fn askYesNo(console: Console, prompt: []const u8, default_yes: bool) !bool {
         } else {
             try console.print("{s} [y/N]: ", .{prompt});
         }
-
         const line: []u8 = try console.readLine();
-
+        if (line.len == 0) {
+            return default_yes;
+        }
         const c = std.ascii.toLower(line[0]);
         if (c == 'y') return true;
         if (c == 'n') return false;
-
         try console.print("Invalid input. Please type y or n.\n", .{});
     }
 }
 
+/// Check if the version flag (-v or --version) is present
 pub fn isVersionFlagEnabled(args: []const []const u8) bool {
     for (args) |arg| {
         if (std.mem.eql(u8, arg, "-v") or std.mem.eql(u8, arg, "--version")) {
@@ -40,7 +39,7 @@ pub fn isVersionFlagEnabled(args: []const []const u8) bool {
     return false;
 }
 
-/// Check if the force flag (-f or --force) is present in the arguments.
+/// Check if the force flag (-f or --force) is present
 pub fn isForceFlagEnabled(args: []const []const u8) bool {
     for (args) |arg| {
         if (std.mem.eql(u8, arg, "-f") or std.mem.eql(u8, arg, "--force")) {
@@ -50,7 +49,7 @@ pub fn isForceFlagEnabled(args: []const []const u8) bool {
     return false;
 }
 
-/// Check if the no-backup flag (--no-backup) is present in the arguments.
+/// Check if the no-backup flag (--no-backup) is present
 pub fn isNoBackupFlag(args: []const []const u8) bool {
     for (args) |arg| {
         if (std.mem.eql(u8, arg, "--no-backup")) {
@@ -60,39 +59,37 @@ pub fn isNoBackupFlag(args: []const []const u8) bool {
     return false;
 }
 
-pub fn shouldCreateBackup(force: bool, no_backup: bool) bool {
-    _ = force;
+pub fn shouldCreateBackup(no_backup: bool) bool {
     if (no_backup) return false;
-    return true; // backup by default — even with force
-    // Alternative (more aggressive): return force or !force;
+    return true; // backup by default
 }
 
-/// Backup the existing binary and remove it from the destination path.
-/// `usr/local/bin/somebinary` -> `usr/local/bin/.movebin_backups/somebinary_timestamp`
-/// If backup_dir is null, a default hidden directory next to the destination will be used.
+/// Backup the existing binary and remove it.
+/// Returns the backup path (or null if no backup was made).
 pub fn backupAndRemoveExistingBin(
     allocator: std.mem.Allocator,
+    io: std.Io,
     dest_path: []const u8,
     backup_dir: ?[]const u8,
-) !?[]u8 { // returns backup path or null if no backup was made
-    if (!try fileExists(dest_path)) {
+) !?[]u8 {
+    if (!try fileExists(io, dest_path)) {
         return null;
     }
 
-    const dir = fs.path.dirname(dest_path) orelse ".";
-    const filename = fs.path.basename(dest_path);
+    const dir = std.fs.path.dirname(dest_path) orelse ".";
+    const filename = std.fs.path.basename(dest_path);
 
     const backup_parent = backup_dir orelse
-        try fs.path.join(allocator, &.{ dir, ".movebin_backups" });
-
+        try std.fs.path.join(allocator, &.{ dir, ".movebin_backups" });
     defer if (backup_dir == null) allocator.free(backup_parent);
 
-    // Create backup dir if needed
-    if (!try fileExists(backup_parent)) {
-        try fs.cwd().makeDir(backup_parent);
+    // Create backup directory if it doesn't exist
+    if (!try fileExists(io, backup_parent)) {
+        try std.Io.Dir.cwd().createDir(io, backup_parent, .default_dir);
     }
 
-    const timestamp = std.time.timestamp();
+    const now_ts = std.Io.Clock.Timestamp.now(io, .real);
+    const timestamp = @as(i64, @intCast(@divFloor(now_ts.raw.nanoseconds, std.time.ns_per_s)));
     const backup_name = try std.fmt.allocPrint(
         allocator,
         "{s}_{d}",
@@ -100,49 +97,41 @@ pub fn backupAndRemoveExistingBin(
     );
     defer allocator.free(backup_name);
 
-    const backup_path = try fs.path.join(
-        allocator,
-        &.{ backup_parent, backup_name },
-    );
+    const backup_path = try std.fs.path.join(allocator, &.{ backup_parent, backup_name });
 
-    try fs.cwd().copyFile(dest_path, fs.cwd(), backup_path, .{});
-
-    try fs.deleteFileAbsolute(dest_path);
+    // Copy then delete original
+    try std.Io.Dir.cwd().copyFile(dest_path, std.Io.Dir.cwd(), backup_path, io, .{});
+    try std.Io.Dir.cwd().deleteFile(io, dest_path);
 
     return backup_path;
 }
 
-///Copy the bin to the destination path
-pub fn copyToDestination(src_path: []const u8, dest_path: []const u8) !void {
-    try fs.cwd().copyFile(src_path, std.fs.cwd(), dest_path, .{});
-    // const dest_file = try fs.cwd().openFile(dest_path, .{ .read = true, .write = true });
-    // defer dest_file.close();
-    // try fs.File.setPermissions(dest_file, .{ .user = .rwx, .group = .rx, .other = .rx });
+/// Copy the binary to the destination path
+pub fn copyToDestination(io: std.Io, src_path: []const u8, dest_path: []const u8) !void {
+    try std.Io.Dir.cwd().copyFile(src_path, std.Io.Dir.cwd(), dest_path, io, .{});
 }
-
-//TODO: Add a function to back up existing binary before deletion
 
 /// Delete the existing binary at the destination path.
-pub fn deleteExistingBin(path: []const u8) !void {
-    try fs.deleteFileAbsolute(path);
+pub fn deleteExistingBin(io: std.Io, path: []const u8) !void {
+    try std.Io.Dir.cwd().deleteFile(io, path);
 }
 
-/// Returns the help text for the movebin command.
+/// Returns the help text
 pub fn HelpText() []const u8 {
-    return 
+    return
     \\Usage: sudo movebin <binary_path> [OPTIONS]
     \\
     \\Options:
-    \\  -o, --output <name>    Set a custom binary name
-    \\  -f, --force            Force overwrite without prompting
-    \\  --no-backup            Skip backup creation
-    \\  -h, --help             Show this help message
-    \\  -v, --version          Show version information
+    \\ -o, --output <name>   Set a custom binary name
+    \\ -f, --force           Force overwrite without prompting
+    \\ --no-backup           Skip backup creation
+    \\ -h, --help            Show this help message
+    \\ -v, --version         Show version information
     \\
     \\Examples:
-    \\  movebin ./my-script                Install as my-script
-    \\  movebin ./my-script -o custom      Install as custom
-    \\  movebin ./my-script -o tool -f     Install as tool, force overwrite
+    \\ movebin ./my-script
+    \\ movebin ./my-script -o custom
+    \\ movebin ./my-script -o tool -f
     \\
     ;
 }

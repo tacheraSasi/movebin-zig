@@ -2,17 +2,14 @@ const std = @import("std");
 
 /// Command line flags parser / helper
 pub const CliFlags = struct {
-    // Using mutable child typehere  to match argsFree() expectation
-    args: []const [:0]u8,
+    args: []const [:0]const u8,
     allocator: std.mem.Allocator,
 
     const Self = @This();
 
-    /// Initialize the CliFlags struct with the provided allocator
-    pub fn init(allocator: std.mem.Allocator) !Self {
-        const all_args = try std.process.argsAlloc(allocator);
-        errdefer std.process.argsFree(allocator, all_args);
-
+    /// Initialize using the juicy main `init` (recommended)
+    pub fn init(allocator: std.mem.Allocator, initt: std.process.Init) !Self {
+        const all_args = try initt.minimal.args.toSlice(allocator);
         return Self{
             .args = all_args,
             .allocator = allocator,
@@ -21,7 +18,7 @@ pub const CliFlags = struct {
 
     /// Free the memory allocated for arguments
     pub fn deinit(self: *const Self) void {
-        std.process.argsFree(self.allocator, self.args);
+        self.allocator.free(self.args); // toSlice allocates, so just free
     }
 
     // ────────────────────────────────────────────────
@@ -29,27 +26,24 @@ pub const CliFlags = struct {
     // ────────────────────────────────────────────────
 
     /// Returns only the arguments (excludes program name = args[0])
-    pub fn getArgs(self: *const Self) []const [:0]u8 {
+    pub fn getArgs(self: *const Self) []const [:0]const u8 {
         if (self.args.len == 0) return &[_][:0]u8{};
         return self.args[1..];
     }
 
     /// Returns all arguments including program name
-    pub fn rawArgs(self: *const Self) []const [:0]u8 {
+    pub fn rawArgs(self: *const Self) []const [:0]const u8 {
         return self.args;
     }
 
-    /// Number of **user** arguments (excludes program name)
     pub fn len(self: *const Self) usize {
         return if (self.args.len > 0) self.args.len - 1 else 0;
     }
 
-    /// Total number of arguments including argv[0]
     pub fn rawLen(self: *const Self) usize {
         return self.args.len;
     }
 
-    /// Checks if the version flag is enabled
     pub fn isVersionFlagEnabled(self: *const Self) bool {
         for (self.getArgs()) |arg| {
             if (std.mem.eql(u8, arg, "-v") or std.mem.eql(u8, arg, "--version")) {
@@ -59,7 +53,6 @@ pub const CliFlags = struct {
         return false;
     }
 
-    /// Checks if the help flag is enabled
     pub fn isHelpFlagEnabled(self: *const Self) bool {
         for (self.getArgs()) |arg| {
             if (std.mem.eql(u8, arg, "-h") or std.mem.eql(u8, arg, "--help")) {
@@ -69,7 +62,6 @@ pub const CliFlags = struct {
         return false;
     }
 
-    /// Checks if the force flag is enabled
     pub fn isForceFlagEnabled(self: *const Self) bool {
         for (self.getArgs()) |arg| {
             if (std.mem.eql(u8, arg, "-f") or std.mem.eql(u8, arg, "--force")) {
@@ -79,7 +71,6 @@ pub const CliFlags = struct {
         return false;
     }
 
-    /// Checks if the no-backup flag is enabled
     pub fn isNoBackupFlagEnabled(self: *const Self) bool {
         for (self.getArgs()) |arg| {
             if (std.mem.eql(u8, arg, "--no-backup")) {
@@ -89,26 +80,12 @@ pub const CliFlags = struct {
         return false;
     }
 
-    /// Get the custom output name if -o flag is provided
-    /// Returns null if no -o flag is found
     pub fn getOutputName(self: *const Self) ?[:0]const u8 {
         const args_slice = self.getArgs();
         var i: usize = 0;
         while (i < args_slice.len) : (i += 1) {
             const arg = args_slice[i];
-
-            // Check for -o flag
-            if (std.mem.eql(u8, arg, "-o")) {
-                // Next argument should be the output name
-                if (i + 1 < args_slice.len) {
-                    return args_slice[i + 1];
-                }
-                // -o provided but no value - could handle error here
-                return null;
-            }
-
-            // Check for --output flag (optional long form)
-            if (std.mem.eql(u8, arg, "--output")) {
+            if (std.mem.eql(u8, arg, "-o") or std.mem.eql(u8, arg, "--output")) {
                 if (i + 1 < args_slice.len) {
                     return args_slice[i + 1];
                 }
@@ -119,13 +96,10 @@ pub const CliFlags = struct {
     }
 
     /// Get non-flag arguments (source path)
-    /// Filters out flags and their values
     pub fn getPositionalArgs(self: *const Self, allocator: std.mem.Allocator) ![]const [:0]u8 {
-        // Count non-flag args first
-        var count: usize = 0;
         const args_slice = self.getArgs();
+        var count: usize = 0;
         var i: usize = 0;
-
         while (i < args_slice.len) : (i += 1) {
             const arg = args_slice[i];
             if (std.mem.startsWith(u8, arg, "-")) {
@@ -137,11 +111,9 @@ pub const CliFlags = struct {
             count += 1;
         }
 
-        // Allocate and fill
         var positional = try allocator.alloc([:0]u8, count);
         var pos_idx: usize = 0;
         i = 0;
-
         while (i < args_slice.len) : (i += 1) {
             const arg = args_slice[i];
             if (std.mem.startsWith(u8, arg, "-")) {
@@ -153,7 +125,6 @@ pub const CliFlags = struct {
             positional[pos_idx] = @constCast(arg);
             pos_idx += 1;
         }
-
         return positional;
     }
 };
