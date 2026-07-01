@@ -8,14 +8,16 @@ const string: type = []const u8;
 
 pub fn main(init: std.process.Init) !void {
     const allocator = init.gpa;
-    const cli = try CliFlags.init(allocator,init);
+    const io = io;
+
+    const cli = try CliFlags.init(allocator, init);
     defer cli.deinit();
 
     var write_buffer: [1024]u8 = undefined;
     var read_buffer: [1024]u8 = undefined;
 
     var console: Console = undefined;
-    console.init(init.io, &write_buffer, &read_buffer);
+    console.init(io, &write_buffer, &read_buffer);
 
     if (cli.getArgs().len == 0) {
         try console.printLine(utils.HelpText(), .{});
@@ -45,7 +47,7 @@ pub fn main(init: std.process.Init) !void {
     }
 
     const src_path = positional_args[0];
-    if (!try utils.fileExists(init.io,src_path)) {
+    if (!try utils.fileExists(io, src_path)) {
         try console.printLine("Source file not found: {s}", .{src_path});
         return;
     }
@@ -71,11 +73,11 @@ pub fn main(init: std.process.Init) !void {
             }
         }
 
-        if (utils.shouldCreateBackup(force, no_backup)) {
+        if (utils.shouldCreateBackup(no_backup)) {
             try console.printLine("Creating backup...", .{});
             backed_up_path = try utils.backupAndRemoveExistingBin(
                 allocator,
-                init.io,
+                io,
                 dest_path,
                 null, // custom backup dir if needed
             );
@@ -84,17 +86,17 @@ pub fn main(init: std.process.Init) !void {
             }
         } else {
             try console.printLine("Removing existing file (no backup requested)...", .{});
-            try utils.deleteExistingBin(init.io, dest_path);
+            try utils.deleteExistingBin(io, dest_path);
         }
     }
 
-    try utils.copyToDestination(init.io, src_path, dest_path);
+    try utils.copyToDestination(io, src_path, dest_path);
 
     // Make executable (macOS/Linux)
     if (comptime std.fs.has_executable_bit) {
         const file = try std.Io.File.open(dest_path, .{ .mode = .read_write });
-        defer file.close(init.io);  // close now takes io
-        try file.chmod(init.io, 0o755);
+        defer file.close(io); // close now takes io
+        try file.chmod(io, 0o755);
     }
 
     try console.printLine("Successfully installed: {s}", .{dest_path});
