@@ -17,7 +17,7 @@ movebin-zig is a small utility to install (move) a local binary into a system di
 ### macOS (Apple Silicon)
 
 ```bash
-curl -L https://github.com/tacheraSasi/movebin-zig/releases/download/v0.0.3/movebin-v0.0.3-aarch64-macos.tar.gz -o movebin.tar.gz
+curl -L https://github.com/tacheraSasi/movebin-zig/releases/latest/download/movebin-darwin-arm64.tar.gz -o movebin.tar.gz
 sudo tar -C /usr/local/bin -xzf movebin.tar.gz
 rm movebin.tar.gz
 ```
@@ -25,7 +25,7 @@ rm movebin.tar.gz
 ### macOS (Intel)
 
 ```bash
-curl -L https://github.com/tacheraSasi/movebin-zig/releases/download/v0.0.3/movebin-v0.0.3-x86_64-macos.tar.gz -o movebin.tar.gz
+curl -L https://github.com/tacheraSasi/movebin-zig/releases/latest/download/movebin-darwin-amd64.tar.gz -o movebin.tar.gz
 sudo tar -C /usr/local/bin -xzf movebin.tar.gz
 rm movebin.tar.gz
 ```
@@ -33,7 +33,7 @@ rm movebin.tar.gz
 ### Linux (x86_64)
 
 ```bash
-curl -L https://github.com/tacheraSasi/movebin-zig/releases/download/v0.0.3/movebin-v0.0.3-x86_64-linux.tar.gz -o movebin.tar.gz
+curl -L https://github.com/tacheraSasi/movebin-zig/releases/latest/download/movebin-linux-amd64.tar.gz -o movebin.tar.gz
 sudo tar -C /usr/local/bin -xzf movebin.tar.gz
 rm movebin.tar.gz
 ```
@@ -41,19 +41,22 @@ rm movebin.tar.gz
 ### Linux (aarch64)
 
 ```bash
-curl -L https://github.com/tacheraSasi/movebin-zig/releases/download/v0.0.3/movebin-v0.0.3-aarch64-linux.tar.gz -o movebin.tar.gz
+curl -L https://github.com/tacheraSasi/movebin-zig/releases/latest/download/movebin-linux-arm64.tar.gz -o movebin.tar.gz
 sudo tar -C /usr/local/bin -xzf movebin.tar.gz
 rm movebin.tar.gz
 ```
 
 ### Windows (x86_64)
 
-Download the zip from the [latest release](https://github.com/tacheraSasi/movebin-zig/releases/download/v0.0.3/movebin-v0.0.3-x86_64-windows.zip), extract `movebin.exe`, and add it to your PATH.
+```bash
+curl -L https://github.com/tacheraSasi/movebin-zig/releases/latest/download/movebin-windows-amd64.zip -o movebin.zip
+# Extract and place movebin.exe somewhere in your PATH
+```
 
-Or with PowerShell:
+Or with PowerShell (admin):
 
 ```powershell
-Invoke-WebRequest -Uri https://github.com/tacheraSasi/movebin-zig/releases/download/v0.0.3/movebin-v0.0.3-x86_64-windows.zip -OutFile movebin.zip
+Invoke-WebRequest -Uri https://github.com/tacheraSasi/movebin-zig/releases/latest/download/movebin-windows-amd64.zip -OutFile movebin.zip
 Expand-Archive movebin.zip -DestinationPath C:\Windows\System32
 Remove-Item movebin.zip
 ```
@@ -73,6 +76,18 @@ To run the program directly from the build output:
 ```bash
 ./zig-out/bin/movebin <path/to/binary>
 ```
+
+A `Makefile` is also provided for convenience:
+
+| Command | Description |
+|---------|-------------|
+| `make build` | Build the project |
+| `make run` | Build and run |
+| `make test` | Run tests |
+| `make lint` | Check formatting |
+| `make clean` | Remove build artifacts |
+| `make build-all` | Cross-compile for all platforms |
+| `make release` | Build archives and create a GitHub release |
 
 ## Usage
 
