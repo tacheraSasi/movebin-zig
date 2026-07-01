@@ -85,7 +85,7 @@ pub fn backupAndRemoveExistingBin(
 
     // Create backup directory if it doesn't exist
     if (!try fileExists(io, backup_parent)) {
-        try std.Io.Dir.cwd().makeDir(io, backup_parent);
+        try std.Io.Dir.cwd().createDir(io, backup_parent, .default_dir);
     }
 
     const timestamp = std.time.timestamp();
