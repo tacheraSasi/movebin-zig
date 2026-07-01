@@ -75,12 +75,18 @@ pub fn main(init: std.process.Init) !void {
 
         if (utils.shouldCreateBackup(no_backup)) {
             try console.printLine("Creating backup...", .{});
-            backed_up_path = try utils.backupAndRemoveExistingBin(
+            backed_up_path = utils.backupAndRemoveExistingBin(
                 allocator,
                 io,
                 dest_path,
                 null, // custom backup dir if needed
-            );
+            ) catch |err| switch (err) {
+                error.AccessDenied => {
+                    try console.printLine("error: Permission denied —> try running with sudo", .{});
+                    return;
+                },
+                else => |e| return e,
+            };
             if (backed_up_path) |bp| {
                 try console.printLine("Backup created: {s}", .{bp});
             }
