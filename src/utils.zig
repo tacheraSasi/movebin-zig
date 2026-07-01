@@ -88,7 +88,8 @@ pub fn backupAndRemoveExistingBin(
         try std.Io.Dir.cwd().createDir(io, backup_parent, .default_dir);
     }
 
-    const timestamp = std.time.timestamp();
+    const now_ts = std.Io.Clock.Timestamp.now(io, .real);
+    const timestamp = @as(i64, @intCast(@divFloor(now_ts.raw.nanoseconds, std.time.ns_per_s)));
     const backup_name = try std.fmt.allocPrint(
         allocator,
         "{s}_{d}",
@@ -99,7 +100,7 @@ pub fn backupAndRemoveExistingBin(
     const backup_path = try std.fs.path.join(allocator, &.{ backup_parent, backup_name });
 
     // Copy then delete original
-    try std.Io.Dir.cwd().copyFile(io, dest_path, std.Io.Dir.cwd(), backup_path, .{});
+    try std.Io.Dir.cwd().copyFile(dest_path, std.Io.Dir.cwd(), backup_path, io, .{});
     try std.Io.Dir.cwd().deleteFile(io, dest_path);
 
     return backup_path;
@@ -107,7 +108,7 @@ pub fn backupAndRemoveExistingBin(
 
 /// Copy the binary to the destination path
 pub fn copyToDestination(io: std.Io, src_path: []const u8, dest_path: []const u8) !void {
-    try std.Io.Dir.cwd().copyFile(io, src_path, std.Io.Dir.cwd(), dest_path, .{});
+    try std.Io.Dir.cwd().copyFile(src_path, std.Io.Dir.cwd(), dest_path, io, .{});
 }
 
 /// Delete the existing binary at the destination path.
