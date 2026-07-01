@@ -8,7 +8,7 @@ const CliFlags = @import("cli-flags.zig").CliFlags;
 const heap = std.heap;
 const string: type = []const u8;
 
-pub fn main() !void {
+pub fn main(init: std.process.Init) !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
     defer _ = gpa.deinit();
@@ -19,7 +19,7 @@ pub fn main() !void {
     var write_buffer: [1024]u8 = undefined;
     var read_buffer: [1024]u8 = undefined;
     var console: Console = undefined;
-    console.init(&write_buffer, &read_buffer);
+    console.init(init.io, &write_buffer, &read_buffer);
 
     if (cli.getArgs().len == 0) { // i check if there are no arguments
         try console.printLine(utils.HelpText(), .{});
