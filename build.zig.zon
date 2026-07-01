@@ -2,7 +2,7 @@
     .name = .movebin,
     .version = "0.0.3",
     .fingerprint = 0xa1a3de7552c3c7a8,
-    .minimum_zig_version = "0.15.2",
+    .minimum_zig_version = "0.16.0",
     .dependencies = .{
     },
     .paths = .{
