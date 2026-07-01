@@ -98,6 +98,7 @@ pub fn backupAndRemoveExistingBin(
     defer allocator.free(backup_name);
 
     const backup_path = try std.fs.path.join(allocator, &.{ backup_parent, backup_name });
+    errdefer allocator.free(backup_path);
 
     // Copy then delete original
     try std.Io.Dir.cwd().copyFile(dest_path, std.Io.Dir.cwd(), backup_path, io, .{});
