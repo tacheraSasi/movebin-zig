@@ -45,7 +45,7 @@ pub fn main(init: std.process.Init) !void {
     }
 
     const src_path = positional_args[0];
-    if (!try utils.fileExists(src_path)) {
+    if (!try utils.fileExists(init.io,src_path)) {
         try console.printLine("Source file not found: {s}", .{src_path});
         return;
     }
@@ -75,6 +75,7 @@ pub fn main(init: std.process.Init) !void {
             try console.printLine("Creating backup...", .{});
             backed_up_path = try utils.backupAndRemoveExistingBin(
                 allocator,
+                init.io,
                 dest_path,
                 null, // custom backup dir if needed
             );
@@ -83,15 +84,15 @@ pub fn main(init: std.process.Init) !void {
             }
         } else {
             try console.printLine("Removing existing file (no backup requested)...", .{});
-            try utils.deleteExistingBin(dest_path);
+            try utils.deleteExistingBin(init.io, dest_path);
         }
     }
 
-    try utils.copyToDestination(src_path, dest_path);
+    try utils.copyToDestination(init.io, src_path, dest_path);
 
     // Make executable (macOS/Linux)
     if (comptime std.fs.has_executable_bit) {
-        const file = try std.Io.File.open(dest_path, .{ .mode = .read_write }); // adjust if your utils use old API
+        const file = try std.Io.File.open(dest_path, .{ .mode = .read_write });
         defer file.close(init.io);  // close now takes io
         try file.chmod(init.io, 0o755);
     }
