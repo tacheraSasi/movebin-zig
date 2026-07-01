@@ -3,13 +3,12 @@ const fs = std.fs;
 const Console = @import("console.zig").Console;
 
 /// Check if a file exists at the given path.
-pub fn fileExists(path: []const u8) !bool {
-    var found = true;
-    fs.cwd().access(path, .{}) catch |err| switch (err) {
-        error.FileNotFound => found = false,
+pub fn fileExists(io: std.Io, path: []const u8) !bool {
+    std.Io.Dir.cwd().access(io, path, .{}) catch |err| switch (err) {
+        error.FileNotFound => return false,
         else => return err,
     };
-    return found;
+    return true;
 }
 
 /// Prompt the user with a yes/no question.
