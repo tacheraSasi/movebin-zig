@@ -6,16 +6,12 @@ pub fn build(b: *std.Build) void {
 
     const exe = b.addExecutable(.{
         .name = "movebin",
-        .root_source_file = b.path("src/main.zig"),
-        .target = target,
-        .optimize = optimize,
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("src/main.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
     });
-
-    const stdio_dep = b.dependency("stdio", .{
-        .target = target,
-        .optimize = optimize,
-    });
-    exe.root_module.addImport("stdio", stdio_dep.module("stdio"));
 
     b.installArtifact(exe);
 
