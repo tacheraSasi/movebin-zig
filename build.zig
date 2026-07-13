@@ -13,6 +13,12 @@ pub fn build(b: *std.Build) void {
         }),
     });
 
+    const stdio_dep = b.dependency("stdio", .{
+        .target = target,
+        .optimize = optimize,
+    });
+    exe.root_module.addImport("stdio", stdio_dep.module("stdio"));
+
     b.installArtifact(exe);
 
     const run_cmd = b.addRunArtifact(exe);
