@@ -4,6 +4,10 @@
     .fingerprint = 0xa1a3de7552c3c7a8,
     .minimum_zig_version = "0.16.0",
     .dependencies = .{
+        .stdio = .{
+            .url = "https://github.com/tacheraSasi/stdio-zig/archive/refs/heads/main.tar.gz",
+            .hash = "stdio-0.0.2-lL7pxf4hAADOQ-WqkrVvWnrCnkCfZwzhWvZ8PmruwYg1",
+        },
     },
     .paths = .{
         "build.zig",

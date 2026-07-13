@@ -1,5 +1,5 @@
 const std = @import("std");
-const Console = @import("console.zig").Console;
+const stdio = @import("stdio");
 
 /// Check if a file exists at the given path.
 pub fn fileExists(io: std.Io, path: []const u8) !bool {
@@ -11,7 +11,7 @@ pub fn fileExists(io: std.Io, path: []const u8) !bool {
 }
 
 /// Prompt the user with a yes/no question.
-pub fn askYesNo(console: Console, prompt: []const u8, default_yes: bool) !bool {
+pub fn askYesNo(console: stdio.Console, prompt: []const u8, default_yes: bool) !bool {
     while (true) {
         if (default_yes) {
             try console.print("{s} [Y/n]: ", .{prompt});

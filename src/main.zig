@@ -1,6 +1,6 @@
 const std = @import("std");
 const utils = @import("utils.zig");
-const Console = @import("console.zig").Console;
+const stdio = @import("stdio");
 const constants = @import("constants.zig");
 const CliFlags = @import("cli-flags.zig").CliFlags;
 
@@ -16,7 +16,7 @@ pub fn main(init: std.process.Init) !void {
     var write_buffer: [1024]u8 = undefined;
     var read_buffer: [1024]u8 = undefined;
 
-    var console: Console = undefined;
+    var console: stdio.Console = undefined;
     console.init(io, &write_buffer, &read_buffer);
 
     if (cli.getArgs().len == 0) {
