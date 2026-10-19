@@ -3,22 +3,19 @@ const std = @import("std");
 /// Command line flags parser / helper
 pub const CliFlags = struct {
     args: []const [:0]const u8,
-    allocator: std.mem.Allocator,
 
     const Self = @This();
 
-    /// Initialize using the juicy main `init` (recommended)
-    pub fn init(allocator: std.mem.Allocator, initt: std.process.Init) !Self {
-        const all_args = try initt.minimal.args.toSlice(allocator);
+    /// Initialize by passing the args
+    pub fn init(args: []const [:0]const u8) !Self {
         return Self{
-            .args = all_args,
-            .allocator = allocator,
+            .args = args,
         };
     }
 
     /// Free the memory allocated for arguments
-    pub fn deinit(self: *const Self) void {
-        self.allocator.free(self.args); // toSlice allocates, so just free
+    pub fn deinit(self: *const Self, allocator: std.mem.Allocator) void {
+        allocator.free(self.args); // toSlice allocates, so just free
     }
 
     // ────────────────────────────────────────────────

@@ -1,17 +1,20 @@
 const std = @import("std");
-const utils = @import("utils.zig");
+
 const stdio = @import("stdio");
-const constants = @import("constants.zig");
+
 const CliFlags = @import("cli-flags.zig").CliFlags;
+const constants = @import("constants.zig");
+const utils = @import("utils.zig");
 
 const string: type = []const u8;
 
 pub fn main(init: std.process.Init) !void {
     const allocator = init.gpa;
     const io = init.io;
+    const args = try init.minimal.args.toSlice(allocator);
 
-    const cli = try CliFlags.init(allocator, init);
-    defer cli.deinit();
+    const cli = try CliFlags.init(args);
+    defer cli.deinit(allocator);
 
     var write_buffer: [1024]u8 = undefined;
     var read_buffer: [1024]u8 = undefined;
