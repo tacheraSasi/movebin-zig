@@ -2,7 +2,7 @@
     .name = .movebin,
     .version = "0.0.3",
     .fingerprint = 0xa1a3de7552c3c7a8,
-    .minimum_zig_version = "0.16.0",
+    .minimum_zig_version = "0.17.0",
     .dependencies = .{
         .stdio = .{
             .url = "https://github.com/tacheraSasi/stdio-zig/archive/refs/heads/main.tar.gz",

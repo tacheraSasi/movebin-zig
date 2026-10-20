@@ -105,7 +105,7 @@ pub fn main(init: std.process.Init) !void {
     if (comptime std.Io.File.Permissions.has_executable_bit) {
         const file = try std.Io.Dir.cwd().openFile(io, dest_path, .{ .mode = .read_write });
         defer file.close(io);
-        try file.setPermissions(io, @as(std.Io.File.Permissions, @enumFromInt(0o755)));
+        try file.setPermissions(io, @as(std.Io.File.Permissions, @fromBackingInt(0o755)));
     }
 
     try console.printLine("Successfully installed: {s}", .{dest_path});
