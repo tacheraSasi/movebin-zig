@@ -22,6 +22,7 @@ pub fn build(b: *std.Build) void {
     b.installArtifact(exe);
 
     const run_cmd = b.addRunArtifact(exe);
+    run_cmd.addPassthruArgs();
     run_cmd.step.dependOn(b.getInstallStep());
     b.step("run", "Run the app").dependOn(&run_cmd.step);
 

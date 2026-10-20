@@ -1,4 +1,5 @@
 const std = @import("std");
+
 const stdio = @import("stdio");
 
 /// Check if a file exists at the given path.
@@ -90,8 +91,7 @@ pub fn backupAndRemoveExistingBin(
 
     const now_ts = std.Io.Clock.Timestamp.now(io, .real);
     const timestamp = @as(i64, @intCast(@divFloor(now_ts.raw.nanoseconds, std.time.ns_per_s)));
-    const backup_name = try std.fmt.allocPrint(
-        allocator,
+    const backup_name = try allocator.print(
         "{s}_{d}",
         .{ filename, timestamp },
     );
