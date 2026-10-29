@@ -9,6 +9,10 @@ fn isValueFlag(arg: []const u8) bool {
     }
     return false;
 }
+
+fn isFlag(arg: []const u8) bool {
+    return arg.len > 1 and arg[0] == '-';
+}
 /// Command line flags parser / helper
 pub const CliFlags = struct {
     args: []const [:0]const u8,
@@ -91,15 +95,23 @@ pub const CliFlags = struct {
         const args_slice = self.getArgs();
 
         // Upper bound: at most every arg is positional.
-        var list = try allocator.alloc([:0]const u8, args_slice.len);
+        const list = try allocator.alloc([:0]const u8, args_slice.len);
+        errdefer allocator.free(list);
         var n: usize = 0;
 
+        var options_done = false;
         var i: usize = 0;
         while (i < args_slice.len) : (i += 1) {
             const arg = args_slice[i];
-            if (std.mem.startsWith(u8, arg, "-")) {
-                if (isValueFlag(arg)) i += 1; // skip this flag's value
-                continue;
+            if (!options_done) {
+                if (std.mem.eql(u8, arg, "--")) {
+                    options_done = true;
+                    continue;
+                }
+                if (isFlag(arg)) {
+                    if (isValueFlag(arg)) i += 1; // skip this flag's value
+                    continue;
+                }
             }
             list[n] = arg;
             n += 1;
@@ -108,12 +120,30 @@ pub const CliFlags = struct {
         return allocator.realloc(list, n); // shrink to the real count
     }
 
+    /// Returns true when a value-taking flag has no value (or no value left).
+    pub fn hasMissingValue(self: *const Self) bool {
+        const args_slice = self.getArgs();
+        var i: usize = 0;
+        while (i < args_slice.len) : (i += 1) {
+            const arg = args_slice[i];
+            if (std.mem.eql(u8, arg, "--")) return false;
+            if (isValueFlag(arg)) {
+                if (i + 1 >= args_slice.len or std.mem.eql(u8, args_slice[i + 1], "--")) {
+                    return true;
+                }
+                i += 1;
+            }
+        }
+        return false;
+    }
+
     /// Looks up `-x value`, `--long value` or `--long=value`.
     pub fn getOptionValue(self: *const Self, short: []const u8, long: []const u8) ?[:0]const u8 {
         const args_slice = self.getArgs();
         var i: usize = 0;
         while (i < args_slice.len) : (i += 1) {
             const arg = args_slice[i];
+            if (std.mem.eql(u8, arg, "--")) return null;
             if (std.mem.eql(u8, arg, short) or std.mem.eql(u8, arg, long)) {
                 return if (i + 1 < args_slice.len) args_slice[i + 1] else null;
             }
@@ -132,3 +162,36 @@ pub const CliFlags = struct {
         return self.getOptionValue("-p", "--prefix");
     }
 };
+
+test "positional args skip option values and honor --" {
+    const allocator = std.testing.allocator;
+    const args = [_][:0]const u8{ "movebin", "-p", "/tmp/prefix", "script.sh", "--", "-not-a-flag" };
+    const cli = try CliFlags.init(&args);
+
+    const positional = try cli.getPositionalArgs(allocator);
+    defer allocator.free(positional);
+
+    try std.testing.expectEqual(@as(usize, 2), positional.len);
+    try std.testing.expectEqualStrings("script.sh", positional[0]);
+    try std.testing.expectEqualStrings("-not-a-flag", positional[1]);
+}
+
+test "option values support separate and attached forms" {
+    const separate = [_][:0]const u8{ "movebin", "--prefix", "/tmp/x", "file" };
+    const cli_separate = try CliFlags.init(&separate);
+    try std.testing.expectEqualStrings("/tmp/x", cli_separate.getPrefix().?);
+
+    const attached = [_][:0]const u8{ "movebin", "--prefix=/tmp/y", "file" };
+    const cli_attached = try CliFlags.init(&attached);
+    try std.testing.expectEqualStrings("/tmp/y", cli_attached.getPrefix().?);
+}
+
+test "missing option value is detected" {
+    const args = [_][:0]const u8{ "movebin", "file", "-p" };
+    const cli = try CliFlags.init(&args);
+    try std.testing.expect(cli.hasMissingValue());
+
+    const complete = [_][:0]const u8{ "movebin", "file", "-p", "/tmp/x" };
+    const cli_complete = try CliFlags.init(&complete);
+    try std.testing.expect(!cli_complete.hasMissingValue());
+}
