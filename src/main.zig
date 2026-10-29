@@ -12,6 +12,7 @@ const string: type = []const u8;
 pub fn main(init: std.process.Init) !void {
     const allocator = init.gpa;
     const io = init.io;
+    const env = init.environ_map;
     const args = try init.minimal.args.toSlice(allocator);
 
     const cli = try CliFlags.init(args);
@@ -56,10 +57,10 @@ pub fn main(init: std.process.Init) !void {
         return;
     }
 
-    const prefix = try prefix_core.resolve(allocator, cli.getPrefix());
+    const prefix = try prefix_core.resolve(allocator, env, cli.getPrefix());
     defer allocator.free(prefix);
-    if (prefix) |p| {
-        try console.printLine("prefixxxxxx {s}", .{p});
+    if (cli.getPrefix() != null) {
+        try console.printLine("prefixxxxxx {s}", .{prefix});
         return;
     }
     // Determine destination filename

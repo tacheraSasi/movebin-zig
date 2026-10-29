@@ -87,34 +87,25 @@ pub const CliFlags = struct {
     }
 
     /// Get non-flag arguments (source path)
-    pub fn getPositionalArgs(self: *const Self, allocator: std.mem.Allocator) ![]const [:0]u8 {
+    pub fn getPositionalArgs(self: *const Self, allocator: std.mem.Allocator) ![]const [:0]const u8 {
         const args_slice = self.getArgs();
-        var count: usize = 0;
+
+        // Upper bound: at most every arg is positional.
+        var list = try allocator.alloc([:0]const u8, args_slice.len);
+        var n: usize = 0;
+
         var i: usize = 0;
         while (i < args_slice.len) : (i += 1) {
             const arg = args_slice[i];
             if (std.mem.startsWith(u8, arg, "-")) {
-                if (isValueFlag(arg)) i += 1;
+                if (isValueFlag(arg)) i += 1; // skip this flag's value
                 continue;
             }
-            count += 1;
+            list[n] = arg;
+            n += 1;
         }
 
-        var positional = try allocator.alloc([:0]u8, count);
-        var pos_idx: usize = 0;
-        i = 0;
-        while (i < args_slice.len) : (i += 1) {
-            const arg = args_slice[i];
-            if (std.mem.startsWith(u8, arg, "-")) {
-                if (std.mem.eql(u8, arg, "-o") or std.mem.eql(u8, arg, "--output")) {
-                    i += 1;
-                }
-                continue;
-            }
-            positional[pos_idx] = @constCast(arg);
-            pos_idx += 1;
-        }
-        return positional;
+        return allocator.realloc(list, n); // shrink to the real count
     }
 
     /// Looks up `-x value`, `--long value` or `--long=value`.
