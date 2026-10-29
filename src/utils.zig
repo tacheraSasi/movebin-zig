@@ -120,10 +120,11 @@ pub fn deleteExistingBin(io: std.Io, path: []const u8) !void {
 /// Returns the help text
 pub fn HelpText() []const u8 {
     return
-    \\Usage: sudo movebin <binary_path> [OPTIONS]
+    \\Usage: movebin <binary_path> [OPTIONS]
     \\
     \\Options:
     \\ -o, --output <name>   Set a custom binary name
+    \\ -p, --prefix <dir>    Install to <dir>/bin (default: /usr/local, or $MOVEBIN_PREFIX)
     \\ -f, --force           Force overwrite without prompting
     \\ --no-backup           Skip backup creation
     \\ -h, --help            Show this help message
@@ -131,6 +132,7 @@ pub fn HelpText() []const u8 {
     \\
     \\Examples:
     \\ movebin ./my-script
+    \\ movebin ./my-script -p ~/.local
     \\ movebin ./my-script -o custom
     \\ movebin ./my-script -o tool -f
     \\

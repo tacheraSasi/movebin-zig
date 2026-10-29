@@ -5,7 +5,9 @@ movebin-zig is a small utility to install (move) a local binary into a system di
 ## Features
 
 - Copy a binary to `/usr/local/bin` and avoid accidental overwrites.
+- Install to a custom prefix with `-p`/`--prefix` or `$MOVEBIN_PREFIX`.
 - Prompts before overwriting; supports a force flag to skip confirmation.
+- Warns when the install directory is not on your `PATH`.
 
 ## Prerequisites
 
@@ -110,6 +112,26 @@ Example:
 sudo movebin ./my-tool
 # destination will be: /usr/local/bin/my-tool
 ```
+
+## Custom install prefix
+
+By default, movebin installs into `/usr/local/bin`. Use `-p`/`--prefix` (or the `MOVEBIN_PREFIX` environment variable) to install into `<prefix>/bin` instead:
+
+```bash
+movebin ./my-script -p ~/.local
+# destination will be: ~/.local/bin/my-script
+
+MOVEBIN_PREFIX=~/.local movebin ./my-script
+# destination will be: ~/.local/bin/my-script
+```
+
+The prefix is resolved in this order:
+
+1. `-p` / `--prefix` command-line flag
+2. `MOVEBIN_PREFIX` environment variable
+3. Default: `/usr/local`
+
+The target `bin` directory is created if it does not exist. If it is not on your `PATH`, movebin prints a warning after installing.
 
 ## Notes
 
