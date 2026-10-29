@@ -41,6 +41,12 @@ pub fn main(init: std.process.Init) !void {
         return;
     }
 
+    if (cli.hasMissingValue()) {
+        try console.printLine("Error: Missing value for option", .{});
+        try console.printLine(utils.HelpText(), .{});
+        return;
+    }
+
     // Getting the positional arguments
     const positional_args = try cli.getPositionalArgs(allocator);
     defer allocator.free(positional_args);
@@ -52,20 +58,31 @@ pub fn main(init: std.process.Init) !void {
     }
 
     const src_path = positional_args[0];
-    if (!try utils.fileExists(io, src_path)) {
-        try console.printLine("Source file not found: {s}", .{src_path});
+    const src_kind = std.Io.Dir.cwd().statFile(io, src_path, .{}) catch |err| switch (err) {
+        error.FileNotFound => {
+            try console.printLine("Source file not found: {s}", .{src_path});
+            return;
+        },
+        else => return err,
+    };
+    if (src_kind.kind == .directory) {
+        try console.printLine("Source path is a directory: {s}", .{src_path});
         return;
     }
 
     const prefix = try prefix_core.resolve(allocator, env, cli.getPrefix());
     defer allocator.free(prefix);
-    if (cli.getPrefix() != null) {
-        try console.printLine("prefixxxxxx {s}", .{prefix});
-        return;
-    }
+
     // Determine destination filename
     const dest_filename = cli.getOutputName() orelse std.fs.path.basename(src_path);
-    const dest_path = try std.fs.path.join(allocator, &.{ "/usr/local/bin", dest_filename });
+    if (dest_filename.len == 0 or
+        std.mem.indexOfScalar(u8, dest_filename, std.fs.path.sep) != null or
+        std.fs.path.isAbsolute(dest_filename))
+    {
+        try console.printLine("Error: Invalid output name: {s}", .{dest_filename});
+        return;
+    }
+    const dest_path = try std.fs.path.join(allocator, &.{ prefix, "bin", dest_filename });
     defer allocator.free(dest_path);
 
     const force = cli.isForceFlagEnabled();
@@ -107,6 +124,9 @@ pub fn main(init: std.process.Init) !void {
         }
     }
 
+    const bin_dir = std.fs.path.dirname(dest_path).?;
+    try std.Io.Dir.cwd().createDirPath(io, bin_dir);
+
     try utils.copyToDestination(io, src_path, dest_path);
 
     // Make executable (macOS/Linux)
@@ -117,4 +137,8 @@ pub fn main(init: std.process.Init) !void {
     }
 
     try console.printLine("Successfully installed: {s}", .{dest_path});
+
+    if (!prefix_core.isOnPath(env, bin_dir)) {
+        try console.printLine("Warning: {s} is not in your PATH", .{bin_dir});
+    }
 }
