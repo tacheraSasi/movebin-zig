@@ -1,5 +1,14 @@
 const std = @import("std");
 
+/// Flags that consume the next argument as their value.
+const value_flags = [_][]const u8{ "-o", "--output", "-p", "--prefix" };
+
+fn isValueFlag(arg: []const u8) bool {
+    for (value_flags) |flag| {
+        if (std.mem.eql(u8, flag, arg)) return true;
+    }
+    return false;
+}
 /// Command line flags parser / helper
 pub const CliFlags = struct {
     args: []const [:0]const u8,
