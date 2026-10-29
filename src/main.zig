@@ -55,6 +55,11 @@ pub fn main(init: std.process.Init) !void {
         return;
     }
 
+    const prefix = cli.getPrefix();
+    if (prefix) |p| {
+        try console.printLine("prefixxxxxx {s}", .{p});
+        return;
+    }
     // Determine destination filename
     const dest_filename = cli.getOutputName() orelse std.fs.path.basename(src_path);
     const dest_path = try std.fs.path.join(allocator, &.{ "/usr/local/bin", dest_filename });

@@ -86,21 +86,6 @@ pub const CliFlags = struct {
         return false;
     }
 
-    pub fn getOutputName(self: *const Self) ?[:0]const u8 {
-        const args_slice = self.getArgs();
-        var i: usize = 0;
-        while (i < args_slice.len) : (i += 1) {
-            const arg = args_slice[i];
-            if (std.mem.eql(u8, arg, "-o") or std.mem.eql(u8, arg, "--output")) {
-                if (i + 1 < args_slice.len) {
-                    return args_slice[i + 1];
-                }
-                return null;
-            }
-        }
-        return null;
-    }
-
     /// Get non-flag arguments (source path)
     pub fn getPositionalArgs(self: *const Self, allocator: std.mem.Allocator) ![]const [:0]u8 {
         const args_slice = self.getArgs();
@@ -109,9 +94,7 @@ pub const CliFlags = struct {
         while (i < args_slice.len) : (i += 1) {
             const arg = args_slice[i];
             if (std.mem.startsWith(u8, arg, "-")) {
-                if (std.mem.eql(u8, arg, "-o") or std.mem.eql(u8, arg, "--output")) {
-                    i += 1;
-                }
+                if (isValueFlag(arg)) i += 1;
                 continue;
             }
             count += 1;
@@ -132,5 +115,29 @@ pub const CliFlags = struct {
             pos_idx += 1;
         }
         return positional;
+    }
+
+    /// Looks up `-x value`, `--long value` or `--long=value`.
+    pub fn getOptionValue(self: *const Self, short: []const u8, long: []const u8) ?[:0]const u8 {
+        const args_slice = self.getArgs();
+        var i: usize = 0;
+        while (i < args_slice.len) : (i += 1) {
+            const arg = args_slice[i];
+            if (std.mem.eql(u8, arg, short) or std.mem.eql(u8, arg, long)) {
+                return if (i + 1 < args_slice.len) args_slice[i + 1] else null;
+            }
+            if (std.mem.startsWith(u8, arg, long) and arg.len > long.len and arg[long.len] == '=') {
+                return arg[long.len + 1 ..];
+            }
+        }
+        return null;
+    }
+
+    pub fn getOutputName(self: *const Self) ?[:0]const u8 {
+        return self.getOptionValue("-o", "--output");
+    }
+
+    pub fn getPrefix(self: *const Self) ?[:0]const u8 {
+        return self.getOptionValue("-p", "--prefix");
     }
 };
