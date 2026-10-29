@@ -4,6 +4,7 @@ const stdio = @import("stdio");
 
 const CliFlags = @import("cli-flags.zig").CliFlags;
 const constants = @import("constants.zig");
+const prefix_core = @import("prefix.zig");
 const utils = @import("utils.zig");
 
 const string: type = []const u8;
@@ -55,7 +56,8 @@ pub fn main(init: std.process.Init) !void {
         return;
     }
 
-    const prefix = cli.getPrefix();
+    const prefix = try prefix_core.resolve(allocator, cli.getPrefix());
+    defer allocator.free(prefix);
     if (prefix) |p| {
         try console.printLine("prefixxxxxx {s}", .{p});
         return;
